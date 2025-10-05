@@ -7,7 +7,7 @@ var PROPERTY_KEYS = {
 
 var DEFAULT_REMINDER_MINUTES = 120;
 var MIN_REMINDER_MINUTES = 30;
-var PROGRESS_TARGET_HOURS = 72;
+var PROGRESS_TARGET_HOURS = 168;
 var MANIFEST_FALLBACK = JSON.stringify({
   name: 'HydraFast',
   short_name: 'HydraFast',
@@ -250,13 +250,58 @@ function getFastingTimeline() {
       focus: 'Focus on calm breathing and light stretching to support recovery.'
     },
     {
-      key: 'long-term',
-      title: 'Long-Term Benefits',
-      range: '48h+',
+      key: 'deep-ketosis',
+      title: 'Deep Ketosis & Regeneration',
+      range: '48-72h',
       startHours: 48,
+      endHours: 72,
+      description: 'Ketones dominate energy use, inflammation drops, and stem cell activity starts to rise.',
+      focus: 'Keep electrolytes steady and prioritize deep rest.'
+    },
+    {
+      key: 'immune-reset',
+      title: 'Immune System Renewal',
+      range: '72-96h',
+      startHours: 72,
+      endHours: 96,
+      description: 'Old immune cells clear out as new white blood cells and a calmer gut microbiome emerge.',
+      focus: 'Stay hydrated, stay warm, and welcome the regeneration.'
+    },
+    {
+      key: 'stem-cell',
+      title: 'Stem Cell Activation',
+      range: '96-120h',
+      startHours: 96,
+      endHours: 120,
+      description: 'Stem cells and mitochondria repair tissues while calm alertness settles in.',
+      focus: 'Breathe slowly, rest often, and listen for subtle body cues.'
+    },
+    {
+      key: 'metabolic-reset',
+      title: 'Hormonal & Metabolic Reset',
+      range: '120-144h',
+      startHours: 120,
+      endHours: 144,
+      description: 'Insulin sensitivity and leptin balance reset as fat-burning efficiency peaks.',
+      focus: 'Hydrate with minerals and move intentionally but gently.'
+    },
+    {
+      key: 'deep-regeneration',
+      title: 'Deep Regeneration',
+      range: '144-168h',
+      startHours: 144,
+      endHours: 168,
+      description: 'DNA repair and cellular longevity signals stay elevated with bright mental clarity.',
+      focus: 'Journal insights, rest frequently, and keep stress low.'
+    },
+    {
+      key: 'extended-healing',
+      title: 'Extended Healing',
+      range: '168h+',
+      startHours: 168,
       endHours: null,
-      description: 'Hormonal balance, immune support, and mental resilience continue to build.',
-      focus: 'Assess how you feel each hour and hydrate with purpose.'
+      description: 'The body sustains on stored fat and ketones—continue only with professional guidance and mindful refeeding.',
+      focus: 'Partner with your care team and map out a gentle refeed plan.'
     }
   ];
 }
