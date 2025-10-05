@@ -188,6 +188,236 @@
       color: var(--primary-dark);
     }
 
+    .social-card {
+      background: linear-gradient(160deg, rgba(0, 180, 216, 0.15), rgba(45, 212, 191, 0.18));
+      color: var(--primary-dark);
+    }
+
+    .circle-tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .circle-tools .helper-text {
+      margin: 0;
+      flex: 1 1 auto;
+    }
+
+    .circle-share {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .share-code {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--primary-dark);
+      box-shadow: 0 6px 16px rgba(0, 119, 182, 0.15);
+    }
+
+    .circle-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .circle-member {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 119, 182, 0.18);
+      border: 1px solid rgba(0, 119, 182, 0.12);
+    }
+
+    .circle-member.member-self {
+      background: rgba(45, 212, 191, 0.18);
+      border-color: rgba(45, 212, 191, 0.45);
+    }
+
+    .member-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .member-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: white;
+      box-shadow: inset 0 4px 12px rgba(255, 255, 255, 0.25);
+      text-transform: uppercase;
+    }
+
+    .member-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .member-name {
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(0, 180, 216, 0.15);
+      color: var(--primary-dark);
+    }
+
+    .status-pill.status-paused {
+      background: rgba(255, 123, 84, 0.18);
+      color: var(--accent);
+    }
+
+    .status-pill.status-planning {
+      background: rgba(45, 212, 191, 0.22);
+      color: var(--primary-dark);
+    }
+
+    .member-note {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .member-actions {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      border: none;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: rgba(0, 180, 216, 0.18);
+      color: var(--primary-dark);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 6px 14px rgba(0, 119, 182, 0.16);
+    }
+
+    .chip:active {
+      transform: scale(0.97);
+    }
+
+    .chip.outline {
+      background: transparent;
+      border: 1px solid rgba(0, 119, 182, 0.35);
+    }
+
+    .chip.ghost {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px dashed rgba(0, 119, 182, 0.35);
+      color: var(--muted);
+    }
+
+    .member-response {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      color: var(--primary-dark);
+      background: rgba(0, 180, 216, 0.08);
+      padding: 10px 12px;
+      border-radius: 12px;
+    }
+
+    .member-response.pending {
+      color: var(--accent);
+      background: rgba(255, 123, 84, 0.12);
+    }
+
+    .self-note {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .circle-empty {
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      border: 1px dashed rgba(0, 119, 182, 0.25);
+    }
+
+    .activity-feed {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(0, 119, 182, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .activity-feed h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+    }
+
+    .activity-item {
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .activity-item strong {
+      color: var(--primary-dark);
+    }
+
+    .activity-time {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 420px) {
+      .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .circle-share {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
     .milestone-track {
       display: flex;
       gap: 12px;
@@ -470,6 +700,22 @@
       </div>
     </section>
 
+    <section class="card social-card">
+      <div class="circle-tools">
+        <div>
+          <h2>Circle Sparks</h2>
+          <p class="helper-text">Share your fast with friends, send playful waves, and keep each other hydrated.</p>
+        </div>
+        <div class="circle-share">
+          <span class="share-code" id="shareCode">HF-0000</span>
+          <button class="chip outline" onclick="handleCopyInvite()" aria-label="Copy invite code">Copy invite</button>
+          <button class="chip" onclick="handleCirclePulse()" aria-label="Send a circle pulse">Circle pulse</button>
+        </div>
+      </div>
+      <div class="circle-list" id="circleList"></div>
+      <div class="activity-feed" id="circleActivity" aria-live="polite"></div>
+    </section>
+
     <section class="card motivation-card">
       <h2>Daily Motivation</h2>
       <p id="motivationText">Stay hydrated and take the first step.</p>
@@ -491,10 +737,14 @@
     let currentStatus = null;
     let isLoading = false;
     let refreshTimer = null;
+    let circleState = null;
 
+    const circleResponseTimers = {};
     const LOCAL_PROFILE_KEY = 'hydrafast:deviceProfile:v2';
+    const LOCAL_CIRCLE_KEY = 'hydrafast:circle:v1';
     const DEFAULT_REMINDER_MINUTES = 120;
     const PROGRESS_TARGET_HOURS = 72;
+    const CIRCLE_RESPONSE_DELAY = { min: 3200, max: 6400 };
     const MILESTONES = [
       {
         hours: 0,
@@ -630,8 +880,52 @@
       }
     ];
 
+    const CIRCLE_RESPONSE_GENERATORS = [
+      function (member) {
+        return {
+          status: 'fasting',
+          message: member.name + ' is still fasting and just finished a mindful sip.',
+          activity: 'checked in and is still fasting 💪',
+          toast: member.name + ' is locked in!',
+          hydrationMinutes: 5,
+          hoursDelta: 1
+        };
+      },
+      function (member) {
+        return {
+          status: 'fasting',
+          message: member.name + ' says: “Still flowing—headed to refill my bottle!”',
+          activity: 'promised a hydration refill.',
+          toast: 'Hydration wave reached ' + member.name + '.',
+          hydrationMinutes: 2,
+          hoursDelta: 0.5
+        };
+      },
+      function (member) {
+        return {
+          status: 'planning',
+          message: member.name + ' paused to reset—cheer them on for the next round.',
+          activity: 'is regrouping for a fresh start.',
+          toast: member.name + ' is regrouping.',
+          hydrationMinutes: 60,
+          hoursDelta: 0
+        };
+      },
+      function (member) {
+        return {
+          status: 'paused',
+          message: member.name + ' lost track and asked for a reminder—send a caring wave.',
+          activity: 'requested a gentle reminder.',
+          toast: member.name + ' needs a gentle reminder.',
+          hydrationMinutes: 90,
+          hoursDelta: 0
+        };
+      }
+    ];
+
     document.addEventListener('DOMContentLoaded', function () {
       initializeMilestones();
+      initializeCircle();
       const localStatus = calculateLocalStatus();
       if (localStatus) {
         renderStatus(localStatus);
@@ -864,6 +1158,7 @@
       persistLocalProfileFromStatus(status);
       updateMilestones(status);
       celebrateMilestones(status);
+      syncCircleWithStatus(status);
     }
 
     function updateStartInputs(status) {
@@ -980,6 +1275,25 @@
         return hours + ' hr';
       }
       return hours + ' hr ' + mins + ' min';
+    }
+
+    function formatMinutesAgo(minutes) {
+      if (minutes === null || minutes === undefined) {
+        return 'No sip yet';
+      }
+      const rounded = Math.max(0, Math.round(minutes));
+      if (rounded <= 1) {
+        return 'just now';
+      }
+      if (rounded < 60) {
+        return rounded + ' min ago';
+      }
+      const hours = Math.floor(rounded / 60);
+      const remainder = rounded % 60;
+      if (remainder === 0) {
+        return hours + 'h ago';
+      }
+      return hours + 'h ' + remainder + 'm ago';
     }
 
     function ensureReminderOption(select, value) {
@@ -1136,6 +1450,547 @@
       });
       saveLocalProfile(profile);
       showToast('Milestone unlocked: ' + latest.title + '! ' + latest.reward);
+    }
+
+    function initializeCircle() {
+      ensureCircleState();
+      renderCircle();
+    }
+
+    function ensureCircleState() {
+      if (circleState) {
+        return circleState;
+      }
+      const stored = loadCircle();
+      circleState = stored || createDefaultCircle();
+      normalizeCircle(circleState);
+      saveCircle(circleState);
+      return circleState;
+    }
+
+    function loadCircle() {
+      if (!supportsLocalStorage()) {
+        return circleState;
+      }
+      try {
+        const raw = localStorage.getItem(LOCAL_CIRCLE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function saveCircle(circle) {
+      if (!supportsLocalStorage()) {
+        return;
+      }
+      try {
+        localStorage.setItem(LOCAL_CIRCLE_KEY, JSON.stringify(circle));
+      } catch (err) {
+        // ignore quota or privacy limitations
+      }
+    }
+
+    function createDefaultCircle() {
+      const now = Date.now();
+      return {
+        shareCode: createShareCode(),
+        members: createDefaultMembers(),
+        activity: [
+          { id: 'act-' + now, message: 'Welcome to Circle Sparks! Invite friends with your code.', timestamp: now - 60000 },
+          { id: 'act-' + (now + 1), message: 'Ava celebrated a hydration win at 14h.', timestamp: now - 180000 }
+        ]
+      };
+    }
+
+    function createDefaultMembers() {
+      return [
+        {
+          id: 'you',
+          name: 'You',
+          initials: 'YOU',
+          color: 'linear-gradient(135deg, #00b4d8, #48cae4)',
+          status: 'planning',
+          hours: 0,
+          lastHydrationMinutes: null,
+          streak: 0,
+          responseMessage: 'Your circle will light up once you start your next fast.',
+          checkInState: 'idle'
+        },
+        {
+          id: 'ava',
+          name: 'Ava',
+          initials: 'A',
+          color: 'linear-gradient(135deg, #0077b6, #00b4d8)',
+          status: 'fasting',
+          hours: 14,
+          lastHydrationMinutes: 38,
+          streak: 3,
+          responseMessage: 'Ava is gliding through Ketone Glow and feeling focused.',
+          checkInState: 'idle'
+        },
+        {
+          id: 'marco',
+          name: 'Marco',
+          initials: 'M',
+          color: 'linear-gradient(135deg, #06d6a0, #118ab2)',
+          status: 'planning',
+          hours: 0,
+          lastHydrationMinutes: 75,
+          streak: 5,
+          responseMessage: 'Marco scheduled a sunset fast—send a wave to lock it in.',
+          checkInState: 'idle'
+        },
+        {
+          id: 'zoe',
+          name: 'Zoe',
+          initials: 'Z',
+          color: 'linear-gradient(135deg, #ff7b54, #ffd166)',
+          status: 'paused',
+          hours: 9,
+          lastHydrationMinutes: 120,
+          streak: 2,
+          responseMessage: 'Zoe paused for a mindful refeed—she’ll restart tonight.',
+          checkInState: 'idle'
+        }
+      ];
+    }
+
+    function createShareCode() {
+      const randomPart = Math.random().toString(36).slice(-4).toUpperCase();
+      const timePart = Date.now().toString().slice(-2);
+      return 'HF-' + timePart + randomPart;
+    }
+
+    function normalizeCircle(circle) {
+      if (!circle.shareCode) {
+        circle.shareCode = createShareCode();
+      }
+      if (!Array.isArray(circle.members) || !circle.members.length) {
+        circle.members = createDefaultMembers();
+      }
+      circle.members = circle.members.map(function (member, index) {
+        return normalizeMember(member, index);
+      });
+      circle.members.sort(function (a, b) {
+        if (a.id === 'you') {
+          return -1;
+        }
+        if (b.id === 'you') {
+          return 1;
+        }
+        return a.name.localeCompare(b.name);
+      });
+      if (!Array.isArray(circle.activity)) {
+        circle.activity = [];
+      }
+      if (circle.activity.length > 25) {
+        circle.activity = circle.activity.slice(circle.activity.length - 25);
+      }
+      return circle;
+    }
+
+    function normalizeMember(member, index) {
+      const normalized = Object.assign({}, member);
+      normalized.id = normalized.id || 'member-' + index;
+      normalized.name = normalized.name || 'Friend';
+      normalized.initials = normalized.initials || normalized.name.split(' ').map(function (part) {
+        return part.charAt(0);
+      }).join('').slice(0, 2);
+      normalized.color = normalized.color || 'linear-gradient(135deg, #00b4d8, #48cae4)';
+      normalized.status = normalized.status || 'planning';
+      normalized.hours = typeof normalized.hours === 'number' ? normalized.hours : 0;
+      normalized.lastHydrationMinutes = typeof normalized.lastHydrationMinutes === 'number'
+        ? Math.max(0, Math.round(normalized.lastHydrationMinutes))
+        : null;
+      normalized.streak = typeof normalized.streak === 'number' ? Math.max(0, Math.round(normalized.streak)) : 0;
+      normalized.responseMessage = normalized.responseMessage || 'Send a wave to say hello.';
+      normalized.checkInState = normalized.checkInState || 'idle';
+      normalized.nudgeCount = normalized.nudgeCount || 0;
+      return normalized;
+    }
+
+    function mutateCircle(mutator) {
+      const circle = ensureCircleState();
+      const result = mutator(circle) || {};
+      normalizeCircle(circle);
+      circleState = circle;
+      saveCircle(circle);
+      renderCircle();
+      return result;
+    }
+
+    function renderCircle() {
+      const circle = ensureCircleState();
+      const shareEl = document.getElementById('shareCode');
+      if (shareEl) {
+        shareEl.textContent = circle.shareCode;
+      }
+      const list = document.getElementById('circleList');
+      if (!list) {
+        return;
+      }
+      list.innerHTML = '';
+      let friendCount = 0;
+      circle.members.forEach(function (member) {
+        const card = document.createElement('div');
+        card.className = 'circle-member' + (member.id === 'you' ? ' member-self' : '');
+
+        const header = document.createElement('div');
+        header.className = 'member-header';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'member-avatar';
+        avatar.style.background = member.color;
+        avatar.textContent = (member.initials || member.name.charAt(0) || '?').slice(0, 2);
+        header.appendChild(avatar);
+
+        const meta = document.createElement('div');
+        meta.className = 'member-meta';
+        const name = document.createElement('div');
+        name.className = 'member-name';
+        const nameText = document.createElement('span');
+        nameText.textContent = member.id === 'you' ? 'You' : member.name;
+        const pill = document.createElement('span');
+        const statusClass = 'status-pill status-' + (member.status || 'planning');
+        pill.className = statusClass.trim();
+        pill.textContent = buildStatusLabel(member);
+        name.appendChild(nameText);
+        name.appendChild(pill);
+        const note = document.createElement('div');
+        note.className = 'member-note';
+        note.textContent = describeMember(member);
+        meta.appendChild(name);
+        meta.appendChild(note);
+        header.appendChild(meta);
+        card.appendChild(header);
+
+        const responseText = member.checkInState === 'pending'
+          ? 'Waiting for ' + (member.id === 'you' ? 'you' : member.name) + ' to check in…'
+          : (member.responseMessage || 'Send a wave to say hi.');
+        const response = document.createElement('div');
+        response.className = 'member-response' + (member.checkInState === 'pending' ? ' pending' : '');
+        response.textContent = responseText;
+
+        if (member.id === 'you') {
+          card.appendChild(response);
+          const selfNote = document.createElement('div');
+          selfNote.className = 'self-note';
+          selfNote.textContent = 'Your circle view updates automatically with your fasting timer.';
+          card.appendChild(selfNote);
+        } else {
+          friendCount += 1;
+          const actions = document.createElement('div');
+          actions.className = 'member-actions';
+
+          const nudgeBtn = document.createElement('button');
+          nudgeBtn.type = 'button';
+          nudgeBtn.className = 'chip';
+          const recentlyNudged = member.lastNudgeAt && (Date.now() - member.lastNudgeAt < 10 * 60 * 1000);
+          if (recentlyNudged) {
+            nudgeBtn.disabled = true;
+            nudgeBtn.classList.add('ghost');
+            nudgeBtn.textContent = 'Wave sent';
+            nudgeBtn.title = 'You nudged ' + member.name + ' recently.';
+          } else {
+            nudgeBtn.textContent = 'Send wave';
+            nudgeBtn.onclick = function () {
+              handleNudgeMember(member.id);
+            };
+            nudgeBtn.title = 'Give ' + member.name + ' a playful hydration nudge.';
+          }
+
+          const checkBtn = document.createElement('button');
+          checkBtn.type = 'button';
+          checkBtn.className = 'chip outline';
+          if (member.checkInState === 'pending') {
+            checkBtn.disabled = true;
+            checkBtn.classList.add('ghost');
+            checkBtn.textContent = 'Pulse sent';
+            checkBtn.title = 'Waiting for ' + member.name + ' to reply.';
+          } else {
+            checkBtn.textContent = 'Pulse check';
+            checkBtn.onclick = function () {
+              handleCheckInMember(member.id);
+            };
+            checkBtn.title = 'Ask ' + member.name + ' if they are still fasting.';
+          }
+
+          actions.appendChild(nudgeBtn);
+          actions.appendChild(checkBtn);
+          card.appendChild(actions);
+          card.appendChild(response);
+        }
+
+        list.appendChild(card);
+      });
+
+      if (friendCount === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'circle-empty';
+        empty.textContent = 'Invite a friend with your code to start trading nudges and check-ins.';
+        list.appendChild(empty);
+      }
+
+      renderCircleActivity();
+    }
+
+    function renderCircleActivity() {
+      const activityEl = document.getElementById('circleActivity');
+      if (!activityEl) {
+        return;
+      }
+      activityEl.innerHTML = '';
+      const header = document.createElement('h3');
+      header.textContent = 'Latest activity';
+      activityEl.appendChild(header);
+      const circle = ensureCircleState();
+      const items = circle.activity.slice().reverse().slice(0, 5);
+      if (!items.length) {
+        const empty = document.createElement('div');
+        empty.className = 'circle-empty';
+        empty.textContent = 'No activity yet. Send a wave to get things flowing.';
+        activityEl.appendChild(empty);
+        return;
+      }
+      items.forEach(function (entry) {
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+        const message = document.createElement('span');
+        message.textContent = entry.message;
+        const time = document.createElement('span');
+        time.className = 'activity-time';
+        time.textContent = formatRelativeTime(entry.timestamp);
+        item.appendChild(message);
+        item.appendChild(time);
+        activityEl.appendChild(item);
+      });
+    }
+
+    function buildStatusLabel(member) {
+      if (member.status === 'fasting') {
+        const hours = Math.max(0, Math.round(member.hours || 0));
+        if (hours === 0) {
+          return 'Fasting';
+        }
+        return 'Fasting • ' + hours + 'h';
+      }
+      if (member.status === 'paused') {
+        return 'Paused fast';
+      }
+      return 'Planning next';
+    }
+
+    function describeMember(member) {
+      const hydration = formatMemberHydration(member.lastHydrationMinutes);
+      const streak = formatStreak(member.streak);
+      return hydration + ' • ' + streak;
+    }
+
+    function formatMemberHydration(minutes) {
+      if (minutes === null || minutes === undefined) {
+        return 'No sip logged yet';
+      }
+      return 'Last sip ' + formatMinutesAgo(minutes);
+    }
+
+    function formatStreak(days) {
+      if (!days) {
+        return 'Streak warming up';
+      }
+      return days + (days === 1 ? '-day streak' : '-day streak');
+    }
+
+    function handleCopyInvite() {
+      const circle = ensureCircleState();
+      const code = circle.shareCode;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(function () {
+          showToast('Invite code copied!');
+        }).catch(function () {
+          showToast('Invite code: ' + code);
+        });
+        return;
+      }
+      try {
+        const tempInput = document.createElement('input');
+        tempInput.value = code;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('Invite code copied!');
+      } catch (err) {
+        showToast('Invite code: ' + code);
+      }
+    }
+
+    function handleCirclePulse() {
+      const circle = ensureCircleState();
+      const others = circle.members.filter(function (member) {
+        return member.id !== 'you';
+      });
+      if (!others.length) {
+        showToast('Invite a friend to send a pulse.');
+        return;
+      }
+      mutateCircle(function (circle) {
+        addCircleActivity(circle, 'You sent a circle pulse to everyone.');
+        circle.members.forEach(function (member) {
+          if (member.id === 'you') {
+            return;
+          }
+          member.checkInState = 'pending';
+          member.responseMessage = 'Waiting for reply…';
+          member.lastCheckAt = Date.now();
+        });
+      });
+      others.forEach(function (member) {
+        scheduleSimulatedResponse(member.id);
+      });
+      showToast('Circle pulse sent!');
+    }
+
+    function handleNudgeMember(memberId) {
+      const outcome = mutateCircle(function (circle) {
+        const member = circle.members.find(function (item) {
+          return item.id === memberId;
+        });
+        if (!member) {
+          return { toast: 'Friend not found.' };
+        }
+        const now = Date.now();
+        if (member.lastNudgeAt && (now - member.lastNudgeAt < 10 * 60 * 1000)) {
+          return { toast: 'You recently nudged ' + member.name + '.' };
+        }
+        member.lastNudgeAt = now;
+        member.nudgeCount = (member.nudgeCount || 0) + 1;
+        member.responseMessage = 'You sent a wave! Expect a reply soon.';
+        addCircleActivity(circle, 'You sent a wave to ' + member.name + '.');
+        return { toast: 'Wave sent to ' + member.name + '!' };
+      });
+      if (outcome && outcome.toast) {
+        showToast(outcome.toast);
+      }
+    }
+
+    function handleCheckInMember(memberId) {
+      const outcome = mutateCircle(function (circle) {
+        const member = circle.members.find(function (item) {
+          return item.id === memberId;
+        });
+        if (!member) {
+          return { toast: 'Friend not found.' };
+        }
+        if (member.checkInState === 'pending') {
+          return { toast: member.name + ' is already replying.' };
+        }
+        member.checkInState = 'pending';
+        member.responseMessage = 'Waiting for reply…';
+        member.lastCheckAt = Date.now();
+        addCircleActivity(circle, 'You asked ' + member.name + ' for a fasting pulse check.');
+        return { toast: 'Pulse check sent to ' + member.name + '!', memberName: member.name };
+      });
+      if (outcome && outcome.toast) {
+        showToast(outcome.toast);
+      }
+      if (outcome && outcome.memberName) {
+        scheduleSimulatedResponse(memberId);
+      }
+    }
+
+    function scheduleSimulatedResponse(memberId) {
+      if (circleResponseTimers[memberId]) {
+        clearTimeout(circleResponseTimers[memberId]);
+      }
+      const delay = randomBetween(CIRCLE_RESPONSE_DELAY.min, CIRCLE_RESPONSE_DELAY.max);
+      circleResponseTimers[memberId] = setTimeout(function () {
+        const response = mutateCircle(function (circle) {
+          const member = circle.members.find(function (item) {
+            return item.id === memberId;
+          });
+          if (!member || member.checkInState !== 'pending') {
+            return { toast: null };
+          }
+          const outcome = pickCircleResponse(member);
+          member.status = outcome.status || member.status;
+          member.responseMessage = outcome.message;
+          member.checkInState = 'idle';
+          if (typeof outcome.hydrationMinutes === 'number') {
+            member.lastHydrationMinutes = Math.max(0, Math.round(outcome.hydrationMinutes));
+          }
+          if (typeof outcome.hoursDelta === 'number') {
+            member.hours = Math.max(0, Math.round((member.hours || 0) + outcome.hoursDelta));
+          }
+          member.lastResponseAt = Date.now();
+          addCircleActivity(circle, member.name + ' ' + outcome.activity);
+          return { toast: outcome.toast };
+        });
+        if (response && response.toast) {
+          showToast(response.toast);
+        }
+        delete circleResponseTimers[memberId];
+      }, delay);
+    }
+
+    function randomBetween(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pickCircleResponse(member) {
+      if (!Array.isArray(CIRCLE_RESPONSE_GENERATORS) || !CIRCLE_RESPONSE_GENERATORS.length) {
+        return {
+          status: member.status,
+          message: member.name + ' is still on track.',
+          activity: 'is staying focused.',
+          toast: member.name + ' checked in!'
+        };
+      }
+      const generator = CIRCLE_RESPONSE_GENERATORS[Math.floor(Math.random() * CIRCLE_RESPONSE_GENERATORS.length)];
+      return generator(member);
+    }
+
+    function addCircleActivity(circle, message) {
+      if (!circle.activity) {
+        circle.activity = [];
+      }
+      circle.activity.push({
+        id: 'act-' + Date.now() + '-' + Math.random().toString(16).slice(-4),
+        message: message,
+        timestamp: Date.now()
+      });
+      if (circle.activity.length > 25) {
+        circle.activity = circle.activity.slice(circle.activity.length - 25);
+      }
+    }
+
+    function syncCircleWithStatus(status) {
+      if (!status) {
+        return;
+      }
+      mutateCircle(function (circle) {
+        let selfMember = circle.members.find(function (member) {
+          return member.id === 'you';
+        });
+        if (!selfMember) {
+          selfMember = normalizeMember({ id: 'you', name: 'You' }, 0);
+          circle.members.push(selfMember);
+        }
+        const isFasting = status.status === 'fasting';
+        selfMember.status = isFasting ? 'fasting' : 'planning';
+        selfMember.hours = isFasting ? Math.max(0, Math.floor((status.elapsedMinutes || 0) / 60)) : 0;
+        const hydrationMinutes = status.hydration && typeof status.hydration.lastDrinkMinutesAgo === 'number'
+          ? Math.max(0, Math.round(status.hydration.lastDrinkMinutesAgo))
+          : null;
+        selfMember.lastHydrationMinutes = hydrationMinutes;
+        selfMember.responseMessage = isFasting && status.phaseDetails
+          ? 'Sharing: ' + status.phaseDetails.title + ' • ' + status.phaseDetails.range + '.'
+          : isFasting
+            ? 'Sharing: Fast in progress—hydrating mindfully.'
+            : 'You are off fast right now. Circle sees when you restart.';
+        selfMember.checkInState = 'idle';
+        selfMember.streak = selfMember.streak || 0;
+      });
     }
 
     function startLocalFast(timestamp) {
