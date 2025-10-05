@@ -395,6 +395,76 @@
       box-shadow: 0 6px 16px rgba(0, 119, 182, 0.15);
     }
 
+    .circle-join {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: var(--radius);
+      background: rgba(0, 180, 216, 0.08);
+      display: grid;
+      gap: 12px;
+    }
+
+    .circle-join label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    .circle-join .join-input-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .circle-join input[type="text"] {
+      flex: 1 1 160px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 119, 182, 0.3);
+      font-size: 1rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .circle-join .join-hint {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .circle-connections {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .connection-card {
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: inset 0 0 0 1px rgba(0, 119, 182, 0.08);
+      text-align: left;
+    }
+
+    .connection-card.is-pending {
+      box-shadow: inset 0 0 0 1px rgba(255, 123, 84, 0.28);
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .connection-code {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+      letter-spacing: 1px;
+    }
+
+    .connection-status {
+      margin-top: 4px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
     .circle-list {
       display: flex;
       flex-direction: column;
@@ -1011,6 +1081,15 @@
         </div>
       </div>
       <div class="circle-list" id="circleList"></div>
+      <div class="circle-join" aria-live="polite">
+        <label for="joinCodeInput">Have a friend invite?</label>
+        <div class="join-input-row">
+          <input type="text" id="joinCodeInput" placeholder="Enter code e.g. HF-12ABCD" aria-label="Enter circle invite code">
+          <button class="chip" type="button" onclick="handleJoinCircle()">Join circle</button>
+        </div>
+        <p class="join-hint">Paste their Circle Sparks code to request a link. They’ll see your request instantly.</p>
+      </div>
+      <div class="circle-connections" id="circleConnections"></div>
       <div class="activity-feed" id="circleActivity" aria-live="polite"></div>
     </section>
 
@@ -1075,11 +1154,13 @@
     let circleState = null;
 
     const circleResponseTimers = {};
+    const circleConnectionTimers = {};
     const LOCAL_PROFILE_KEY = 'hydrafast:deviceProfile:v2';
     const LOCAL_CIRCLE_KEY = 'hydrafast:circle:v1';
     const DEFAULT_REMINDER_MINUTES = 120;
     const PROGRESS_TARGET_HOURS = 168;
     const CIRCLE_RESPONSE_DELAY = { min: 3200, max: 6400 };
+    const CIRCLE_CONNECTION_DELAY = { min: 2600, max: 5200 };
     const MILESTONES = [
       {
         hours: 0,
@@ -1953,8 +2034,22 @@
     }
 
     function initializeCircle() {
-      ensureCircleState();
+      const circle = ensureCircleState();
       renderCircle();
+      (circle.connectedCircles || []).forEach(function (connection) {
+        if (connection.status === 'pending') {
+          scheduleCircleConnectionConfirmation(connection.code);
+        }
+      });
+      const joinInput = document.getElementById('joinCodeInput');
+      if (joinInput) {
+        joinInput.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            handleJoinCircle();
+          }
+        });
+      }
     }
 
     function ensureCircleState() {
@@ -1996,6 +2091,7 @@
       return {
         shareCode: createShareCode(),
         members: createDefaultMembers(),
+        connectedCircles: [],
         activity: [
           { id: 'act-' + now, message: 'Welcome to Circle Sparks! Invite friends with your code.', timestamp: now - 60000 },
           { id: 'act-' + (now + 1), message: 'Ava celebrated a hydration win at 14h.', timestamp: now - 180000 }
@@ -2062,6 +2158,10 @@
       return 'HF-' + timePart + randomPart;
     }
 
+    function isValidShareCode(code) {
+      return /^HF-[A-Z0-9]{6}$/.test(code || '');
+    }
+
     function normalizeCircle(circle) {
       if (!circle.shareCode) {
         circle.shareCode = createShareCode();
@@ -2081,6 +2181,18 @@
         }
         return a.name.localeCompare(b.name);
       });
+      if (!Array.isArray(circle.connectedCircles)) {
+        circle.connectedCircles = [];
+      } else {
+        circle.connectedCircles = circle.connectedCircles
+          .map(function (connection, index) {
+            return normalizeConnection(connection, index);
+          })
+          .filter(Boolean);
+        circle.connectedCircles.sort(function (a, b) {
+          return (b.joinedAt || 0) - (a.joinedAt || 0);
+        });
+      }
       if (!Array.isArray(circle.activity)) {
         circle.activity = [];
       }
@@ -2108,6 +2220,47 @@
       normalized.checkInState = normalized.checkInState || 'idle';
       normalized.nudgeCount = normalized.nudgeCount || 0;
       return normalized;
+    }
+
+    function normalizeConnection(connection, index) {
+      if (!connection) {
+        return null;
+      }
+      const normalized = Object.assign({}, connection);
+      normalized.code = typeof normalized.code === 'string'
+        ? connection.code.trim().toUpperCase()
+        : '';
+      if (!isValidShareCode(normalized.code)) {
+        return null;
+      }
+      normalized.id = normalized.id || 'link-' + index;
+      normalized.joinedAt = typeof normalized.joinedAt === 'number' ? normalized.joinedAt : Date.now();
+      normalized.status = normalized.status === 'connected' ? 'connected' : 'pending';
+      normalized.statusMessage = normalized.statusMessage || (normalized.status === 'connected'
+        ? 'Circle linked! Activity will sync when they start a fast.'
+        : 'Waiting for your friend to accept.');
+      return normalized;
+    }
+
+    function describeConnectionAge(joinedAt, status) {
+      if (!joinedAt) {
+        return status === 'connected' ? 'Connected just now.' : 'Requested moments ago.';
+      }
+      const elapsedMs = Math.max(0, Date.now() - joinedAt);
+      const minutes = Math.round(elapsedMs / 60000);
+      const prefix = status === 'connected' ? 'Connected ' : 'Requested ';
+      if (minutes < 1) {
+        return prefix + 'just now.';
+      }
+      if (minutes < 60) {
+        return prefix + minutes + ' minute' + (minutes === 1 ? '' : 's') + ' ago.';
+      }
+      const hours = Math.round(minutes / 60);
+      if (hours < 24) {
+        return prefix + hours + ' hour' + (hours === 1 ? '' : 's') + ' ago.';
+      }
+      const days = Math.round(hours / 24);
+      return prefix + days + ' day' + (days === 1 ? '' : 's') + ' ago.';
     }
 
     function mutateCircle(mutator) {
@@ -2232,7 +2385,49 @@
         list.appendChild(empty);
       }
 
+      renderCircleConnections(circle);
       renderCircleActivity();
+    }
+
+    function renderCircleConnections(circle) {
+      const container = document.getElementById('circleConnections');
+      if (!container) {
+        return;
+      }
+      container.innerHTML = '';
+      const connections = circle.connectedCircles || [];
+      if (!connections.length) {
+        const empty = document.createElement('div');
+        empty.className = 'circle-empty';
+        empty.textContent = 'Enter a friend’s invite code to connect your circles.';
+        container.appendChild(empty);
+        return;
+      }
+      const header = document.createElement('h3');
+      header.textContent = 'Linked circles';
+      container.appendChild(header);
+      connections.forEach(function (connection) {
+        const card = document.createElement('div');
+        card.className = 'connection-card';
+        if (connection.status === 'pending') {
+          card.classList.add('is-pending');
+        }
+        const codeEl = document.createElement('div');
+        codeEl.className = 'connection-code';
+        codeEl.textContent = connection.code;
+        const statusEl = document.createElement('div');
+        statusEl.className = 'connection-status';
+        statusEl.textContent = connection.statusMessage || (connection.status === 'connected'
+          ? 'Circle linked! Activity will sync when they start a fast.'
+          : 'Waiting for your friend to accept.');
+        const metaEl = document.createElement('div');
+        metaEl.className = 'connection-status';
+        metaEl.textContent = describeConnectionAge(connection.joinedAt, connection.status);
+        card.appendChild(codeEl);
+        card.appendChild(statusEl);
+        card.appendChild(metaEl);
+        container.appendChild(card);
+      });
     }
 
     function renderCircleActivity() {
@@ -2322,6 +2517,59 @@
         showToast('Invite code copied!');
       } catch (err) {
         showToast('Invite code: ' + code);
+      }
+    }
+
+    function handleJoinCircle() {
+      const input = document.getElementById('joinCodeInput');
+      if (!input) {
+        return;
+      }
+      const code = (input.value || '').trim().toUpperCase();
+      if (!code) {
+        showToast('Enter a circle code to join.');
+        input.focus();
+        return;
+      }
+      if (!isValidShareCode(code)) {
+        showToast('Circle codes look like HF-12ABCD. Double-check the invite.');
+        input.focus();
+        input.select();
+        return;
+      }
+      const outcome = mutateCircle(function (circle) {
+        if (code === circle.shareCode) {
+          return { toast: 'That’s your personal code—share it with friends instead.' };
+        }
+        circle.connectedCircles = circle.connectedCircles || [];
+        const existing = circle.connectedCircles.find(function (connection) {
+          return connection.code === code;
+        });
+        if (existing) {
+          existing.statusMessage = existing.status === 'connected'
+            ? 'Already connected. Encourage them to start a fast!'
+            : 'Request already sent. They’ll accept soon.';
+          return { toast: 'You already added that circle.' };
+        }
+        const connection = {
+          code: code,
+          joinedAt: Date.now(),
+          status: 'pending',
+          statusMessage: 'Request sent! Waiting for them to accept.'
+        };
+        circle.connectedCircles.push(connection);
+        addCircleActivity(circle, 'You requested to join circle ' + code + '.');
+        return { toast: 'Invite sent to ' + code + '!', newCode: code };
+      });
+      if (!outcome) {
+        return;
+      }
+      if (outcome.toast) {
+        showToast(outcome.toast);
+      }
+      if (outcome.newCode) {
+        input.value = '';
+        scheduleCircleConnectionConfirmation(outcome.newCode);
       }
     }
 
@@ -2430,6 +2678,30 @@
           showToast(response.toast);
         }
         delete circleResponseTimers[memberId];
+      }, delay);
+    }
+
+    function scheduleCircleConnectionConfirmation(code) {
+      if (circleConnectionTimers[code]) {
+        clearTimeout(circleConnectionTimers[code]);
+      }
+      const delay = randomBetween(CIRCLE_CONNECTION_DELAY.min, CIRCLE_CONNECTION_DELAY.max);
+      circleConnectionTimers[code] = setTimeout(function () {
+        mutateCircle(function (circle) {
+          if (!circle.connectedCircles) {
+            return;
+          }
+          const connection = circle.connectedCircles.find(function (item) {
+            return item.code === code;
+          });
+          if (!connection || connection.status === 'connected') {
+            return;
+          }
+          connection.status = 'connected';
+          connection.statusMessage = 'Circle linked! Keep an eye on their streaks.';
+          addCircleActivity(circle, 'Circle ' + code + ' linked with you. Time to cheer them on!');
+        });
+        delete circleConnectionTimers[code];
       }, delay);
     }
 
