@@ -56,7 +56,7 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
-      max-width: 520px;
+      max-width: 460px;
       margin: 0 auto;
     }
 
@@ -183,6 +183,83 @@
       line-height: 1.5;
     }
 
+    .mission-card {
+      background: linear-gradient(160deg, rgba(0, 180, 216, 0.18), rgba(45, 212, 191, 0.12));
+      color: var(--primary-dark);
+    }
+
+    .milestone-track {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 6px 0 4px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .milestone-track::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .milestone-track::-webkit-scrollbar-thumb {
+      background: rgba(0, 119, 182, 0.35);
+      border-radius: 6px;
+    }
+
+    .milestone-card {
+      min-width: 180px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 10px 26px rgba(0, 119, 182, 0.18);
+      scroll-snap-align: start;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .milestone-card .badge {
+      align-self: flex-start;
+      background: rgba(0, 180, 216, 0.15);
+      color: var(--primary-dark);
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .milestone-card h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--primary-dark);
+    }
+
+    .milestone-card p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .milestone-card .reward {
+      margin-top: auto;
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .milestone-card.achieved {
+      background: rgba(45, 212, 191, 0.2);
+      box-shadow: 0 14px 28px rgba(45, 212, 191, 0.25);
+    }
+
+    .milestone-card.active {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 32px rgba(0, 119, 182, 0.28);
+      border: 1px solid rgba(0, 119, 182, 0.35);
+    }
+
     .hydration-list {
       display: flex;
       flex-direction: column;
@@ -272,6 +349,13 @@
       color: var(--primary-dark);
     }
 
+    .timeline-phase .focus {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
     .timeline-phase .range {
       font-size: 0.85rem;
       color: var(--muted);
@@ -343,6 +427,12 @@
       <div class="phase-description" id="phaseDescription">Tap “Start Fast” to begin tracking.</div>
     </section>
 
+    <section class="card mission-card">
+      <h2>Milestone Journey</h2>
+      <p class="helper-text" id="milestoneMessage">Start your fast to unlock your first milestone boost.</p>
+      <div class="milestone-track" id="milestoneTrack"></div>
+    </section>
+
     <section class="card center">
       <div class="button-group">
         <button class="btn-primary" id="startButton" onclick="handleStart()">Start Fast</button>
@@ -402,7 +492,150 @@
     let isLoading = false;
     let refreshTimer = null;
 
+    const LOCAL_PROFILE_KEY = 'hydrafast:deviceProfile:v2';
+    const DEFAULT_REMINDER_MINUTES = 120;
+    const PROGRESS_TARGET_HOURS = 72;
+    const MILESTONES = [
+      {
+        hours: 0,
+        title: 'Launch Ritual',
+        benefit: 'Clarify your goal and prime your hydration strategy.',
+        reward: 'Mindset locked in and ready.'
+      },
+      {
+        hours: 4,
+        title: 'Metabolic Reset',
+        benefit: 'Blood sugar balances and cravings calm.',
+        reward: 'Focus feels smoother.'
+      },
+      {
+        hours: 8,
+        title: 'Fat Mobilizer',
+        benefit: 'Your body leans on stored fuel for energy.',
+        reward: 'Energy feels lighter and steadier.'
+      },
+      {
+        hours: 12,
+        title: 'Cellular Cleanse',
+        benefit: 'Autophagy sparks gentle cellular clean-up.',
+        reward: 'Mental clarity begins to bloom.'
+      },
+      {
+        hours: 16,
+        title: 'Ketone Glow',
+        benefit: 'Ketones support calm, clear thinking.',
+        reward: 'Mood steadies with purposeful energy.'
+      },
+      {
+        hours: 20,
+        title: 'Repair Momentum',
+        benefit: 'Growth hormone rises to protect lean muscle.',
+        reward: 'Body rebuilds with confidence.'
+      },
+      {
+        hours: 24,
+        title: 'Immune Refresh',
+        benefit: 'Immune rejuvenation and inflammation reset activate.',
+        reward: 'Resilience shines from within.'
+      },
+      {
+        hours: 36,
+        title: 'Heroic Harmony',
+        benefit: 'Deep autophagy sweeps cells clean.',
+        reward: 'Whole-body harmony unlocked.'
+      }
+    ];
+
+    const LOCAL_TIMELINE = [
+      {
+        key: 'launch',
+        title: 'Launch Ritual',
+        range: '0-2h',
+        startHours: 0,
+        endHours: 2,
+        description: 'Your body is finishing digestion. Lock in your intention and sip water mindfully.',
+        focus: 'Set your goal and design your hydration rhythm.'
+      },
+      {
+        key: 'balance',
+        title: 'Balance Builder',
+        range: '2-6h',
+        startHours: 2,
+        endHours: 6,
+        description: 'Blood sugar steadies and cravings soften as insulin begins to dip.',
+        focus: 'Enjoy steady breathing and light stretching between sips.'
+      },
+      {
+        key: 'reset',
+        title: 'Metabolic Reset',
+        range: '6-10h',
+        startHours: 6,
+        endHours: 10,
+        description: 'Your body transitions toward fat for fuel while hydration supports detox pathways.',
+        focus: 'Keep water flowing and celebrate the calm energy arriving.'
+      },
+      {
+        key: 'shift',
+        title: 'Fat Fuel Shift',
+        range: '10-16h',
+        startHours: 10,
+        endHours: 16,
+        description: 'Fat burning accelerates and cellular cleanup begins to spark.',
+        focus: 'Take a mindful walk or stretch to enjoy the momentum.'
+      },
+      {
+        key: 'repair',
+        title: 'Repair Revival',
+        range: '16-24h',
+        startHours: 16,
+        endHours: 24,
+        description: 'Ketones rise to fuel your brain while autophagy works on cellular repair.',
+        focus: 'Breathe deeply and honor each signal your body sends.'
+      },
+      {
+        key: 'renewal',
+        title: 'Renewal Wave',
+        range: '24-36h',
+        startHours: 24,
+        endHours: 36,
+        description: 'Immune rejuvenation intensifies and inflammation begins to ease.',
+        focus: 'Hydrate with electrolytes and rest intentionally.'
+      },
+      {
+        key: 'harmony',
+        title: 'Harmony Horizon',
+        range: '36-48h',
+        startHours: 36,
+        endHours: 48,
+        description: 'Deep cellular refresh brings harmony through every system.',
+        focus: 'Move gently and celebrate how far you have come.'
+      },
+      {
+        key: 'clarity',
+        title: 'Deep Clarity',
+        range: '48-72h',
+        startHours: 48,
+        endHours: 72,
+        description: 'Recovery hormones peak and your body preserves lean muscle.',
+        focus: 'Prioritize calm, sleep, and gratitude for your effort.'
+      },
+      {
+        key: 'legacy',
+        title: 'Legacy Glow',
+        range: '72h+',
+        startHours: 72,
+        endHours: null,
+        description: 'You have mastered your rhythm—pause with your health professional before extending further.',
+        focus: 'Reflect, refeed slowly, and note insights for your next journey.'
+      }
+    ];
+
     document.addEventListener('DOMContentLoaded', function () {
+      initializeMilestones();
+      const localStatus = calculateLocalStatus();
+      if (localStatus) {
+        renderStatus(localStatus);
+      }
       refreshStatus();
       refreshTimer = setInterval(refreshStatus, 60000);
       if ('serviceWorker' in navigator) {
@@ -419,7 +652,13 @@
       isLoading = true;
       if (!hasAppsScript()) {
         isLoading = false;
-        document.getElementById('statusBanner').textContent = 'Connect to Apps Script to start tracking your fast.';
+        const localStatus = calculateLocalStatus();
+        if (localStatus) {
+          currentStatus = localStatus;
+          renderStatus(localStatus);
+        } else {
+          document.getElementById('statusBanner').textContent = 'HydraFast is ready on this device. Tap “Start Fast” to begin your journey.';
+        }
         return;
       }
       google.script.run
@@ -437,10 +676,6 @@
     }
 
     function handleStart() {
-      if (!hasAppsScript()) {
-        showToast('Connect to Apps Script to start tracking.');
-        return;
-      }
       let timestamp = null;
       const input = document.getElementById('fastStartInput');
       if (input && input.value) {
@@ -454,6 +689,14 @@
           return;
         }
         timestamp = parsed;
+      }
+      if (!hasAppsScript()) {
+        const status = startLocalFast(timestamp || Date.now());
+        if (status) {
+          renderStatus(status);
+        }
+        showToast('Fast started on this device. Hydrate with intention!');
+        return;
       }
       setButtonsDisabled(true);
       google.script.run
@@ -473,7 +716,11 @@
 
     function handleStop() {
       if (!hasAppsScript()) {
-        showToast('Connect to Apps Script to stop your fast.');
+        const status = stopLocalFast();
+        if (status) {
+          renderStatus(status);
+        }
+        showToast('Fast ended for this device. Great listening.');
         return;
       }
       setButtonsDisabled(true);
@@ -494,7 +741,11 @@
 
     function handleDrink() {
       if (!hasAppsScript()) {
-        showToast('Connect to Apps Script to log hydration.');
+        const status = recordLocalDrink();
+        if (status) {
+          renderStatus(status);
+        }
+        showToast('Hydration logged. Keep the flow going!');
         return;
       }
       setButtonsDisabled(true);
@@ -515,7 +766,11 @@
 
     function handleReminderChange(value) {
       if (!hasAppsScript()) {
-        showToast('Connect to Apps Script to schedule reminders.');
+        const status = setLocalReminderInterval(Number(value));
+        if (status) {
+          renderStatus(status);
+        }
+        showToast('Hydration reminders updated for this device.');
         return;
       }
       google.script.run
@@ -532,10 +787,6 @@
     }
 
     function handleSaveStartTime() {
-      if (!hasAppsScript()) {
-        showToast('Connect to Apps Script to update your start time.');
-        return;
-      }
       const input = document.getElementById('fastStartInput');
       if (!input || !input.value) {
         showToast('Choose a start date and time first.');
@@ -548,6 +799,14 @@
       }
       if (timestamp > Date.now()) {
         showToast('Start time cannot be in the future.');
+        return;
+      }
+      if (!hasAppsScript()) {
+        const status = setLocalStartTime(timestamp);
+        if (status) {
+          renderStatus(status);
+        }
+        showToast('Start time saved for this device.');
         return;
       }
       setButtonsDisabled(true);
@@ -602,6 +861,9 @@
       updateHydration(status.hydration, isFasting);
       updateMotivation(status.motivationalMessage);
       updateTimeline(status.timeline, status.activePhaseIndex);
+      persistLocalProfileFromStatus(status);
+      updateMilestones(status);
+      celebrateMilestones(status);
     }
 
     function updateStartInputs(status) {
@@ -657,10 +919,16 @@
         const range = document.createElement('div');
         range.className = 'range';
         range.textContent = phase.range;
+        const focus = document.createElement('div');
+        focus.className = 'focus';
+        focus.textContent = phase.focus || '';
         const description = document.createElement('p');
         description.textContent = phase.description;
         wrapper.appendChild(range);
         wrapper.appendChild(title);
+        if (phase.focus) {
+          wrapper.appendChild(focus);
+        }
         wrapper.appendChild(description);
         container.appendChild(wrapper);
       });
@@ -762,6 +1030,367 @@
         return '--';
       }
       return date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function initializeMilestones() {
+      const track = document.getElementById('milestoneTrack');
+      if (!track) {
+        return;
+      }
+      track.innerHTML = '';
+      MILESTONES.forEach(function (milestone) {
+        const card = document.createElement('div');
+        card.className = 'milestone-card';
+        card.dataset.hours = milestone.hours;
+        const badge = document.createElement('div');
+        badge.className = 'badge';
+        badge.textContent = milestone.hours === 0 ? 'Start' : milestone.hours + 'h';
+        const title = document.createElement('h3');
+        title.textContent = milestone.title;
+        const benefit = document.createElement('p');
+        benefit.textContent = milestone.benefit;
+        const reward = document.createElement('div');
+        reward.className = 'reward';
+        reward.textContent = milestone.reward;
+        card.appendChild(badge);
+        card.appendChild(title);
+        card.appendChild(benefit);
+        card.appendChild(reward);
+        track.appendChild(card);
+      });
+    }
+
+    function updateMilestones(status) {
+      const track = document.getElementById('milestoneTrack');
+      const messageEl = document.getElementById('milestoneMessage');
+      if (!track || !messageEl) {
+        return;
+      }
+      if (!status) {
+        messageEl.textContent = 'Start your fast to unlock your first milestone boost.';
+        return;
+      }
+      const hasStarted = Boolean(status.startTimestamp);
+      const elapsedHours = status.elapsedHours || 0;
+      let nextCard = null;
+      Array.prototype.forEach.call(track.children, function (card) {
+        const milestoneHours = Number(card.dataset.hours);
+        const isZero = milestoneHours === 0;
+        card.classList.remove('achieved', 'active');
+        const achieved = hasStarted && (isZero || elapsedHours >= milestoneHours);
+        if (achieved) {
+          card.classList.add('achieved');
+        } else if (!nextCard) {
+          nextCard = card;
+        }
+      });
+      if (nextCard) {
+        nextCard.classList.add('active');
+      }
+      const nextData = nextCard
+        ? MILESTONES.find(function (milestone) {
+            return milestone.hours === Number(nextCard.dataset.hours);
+          })
+        : null;
+      if (!hasStarted) {
+        messageEl.textContent = 'Tap “Start Fast” to begin and unlock your milestone boosts.';
+      } else if (nextData) {
+        const deltaHours = Math.max(0, nextData.hours - elapsedHours);
+        if (deltaHours <= 0) {
+          messageEl.textContent = 'Milestone unlocked: ' + nextData.title + '! ' + nextData.reward;
+        } else {
+          const deltaMinutes = Math.max(1, Math.round(deltaHours * 60));
+          messageEl.textContent = 'Next boost: ' + nextData.title + ' in ' + formatMinutes(deltaMinutes) + '.';
+        }
+      } else {
+        messageEl.textContent = 'You have unlocked every milestone—hydrate, recover, and record how you feel.';
+      }
+    }
+
+    function celebrateMilestones(status) {
+      if (!status || !supportsLocalStorage()) {
+        return;
+      }
+      const profile = getOrCreateLocalProfile();
+      if (!status.startTimestamp) {
+        if (profile.unlockedMilestones && profile.unlockedMilestones.length) {
+          profile.unlockedMilestones = [];
+          saveLocalProfile(profile);
+        }
+        return;
+      }
+      const elapsedHours = status.elapsedHours || 0;
+      const unlocked = Array.isArray(profile.unlockedMilestones) ? profile.unlockedMilestones.slice() : [];
+      const newlyUnlocked = MILESTONES.filter(function (milestone) {
+        return milestone.hours > 0 && elapsedHours >= milestone.hours && unlocked.indexOf(milestone.hours) === -1;
+      });
+      if (newlyUnlocked.length === 0) {
+        return;
+      }
+      const latest = newlyUnlocked[newlyUnlocked.length - 1];
+      newlyUnlocked.forEach(function (milestone) {
+        unlocked.push(milestone.hours);
+      });
+      profile.unlockedMilestones = Array.from(new Set(unlocked)).sort(function (a, b) {
+        return a - b;
+      });
+      saveLocalProfile(profile);
+      showToast('Milestone unlocked: ' + latest.title + '! ' + latest.reward);
+    }
+
+    function startLocalFast(timestamp) {
+      const now = Date.now();
+      const resolved = Math.min(timestamp || now, now);
+      const profile = mutateLocalProfile(function (profile) {
+        profile.startTimestamp = resolved;
+        profile.hydration = profile.hydration || {};
+        const interval = profile.hydration.intervalMinutes || profile.reminderInterval || DEFAULT_REMINDER_MINUTES;
+        profile.hydration.intervalMinutes = interval;
+        profile.hydration.lastDrinkTimestamp = resolved;
+        profile.hydration.nextReminderMinutes = interval;
+        profile.unlockedMilestones = [];
+      });
+      return calculateLocalStatus(profile);
+    }
+
+    function stopLocalFast() {
+      const profile = mutateLocalProfile(function (profile) {
+        profile.startTimestamp = null;
+        profile.hydration = profile.hydration || {};
+        profile.hydration.lastDrinkTimestamp = null;
+        profile.hydration.nextReminderMinutes = null;
+        profile.unlockedMilestones = [];
+      });
+      return calculateLocalStatus(profile);
+    }
+
+    function recordLocalDrink() {
+      const profile = mutateLocalProfile(function (profile) {
+        profile.hydration = profile.hydration || {};
+        profile.hydration.lastDrinkTimestamp = Date.now();
+      });
+      return calculateLocalStatus(profile);
+    }
+
+    function setLocalReminderInterval(value) {
+      let interval = parseInt(value, 10);
+      if (isNaN(interval) || interval < 30) {
+        interval = DEFAULT_REMINDER_MINUTES;
+      }
+      const profile = mutateLocalProfile(function (profile) {
+        profile.reminderInterval = interval;
+        profile.hydration = profile.hydration || {};
+        profile.hydration.intervalMinutes = interval;
+      });
+      return calculateLocalStatus(profile);
+    }
+
+    function setLocalStartTime(timestamp) {
+      const resolved = Math.min(timestamp, Date.now());
+      const profile = mutateLocalProfile(function (profile) {
+        profile.startTimestamp = resolved;
+        profile.hydration = profile.hydration || {};
+        if (!profile.hydration.intervalMinutes) {
+          profile.hydration.intervalMinutes = profile.reminderInterval || DEFAULT_REMINDER_MINUTES;
+        }
+        if (!profile.hydration.lastDrinkTimestamp || profile.hydration.lastDrinkTimestamp < resolved) {
+          profile.hydration.lastDrinkTimestamp = resolved;
+        }
+      });
+      return calculateLocalStatus(profile);
+    }
+
+    function calculateLocalStatus(profile) {
+      if (!supportsLocalStorage()) {
+        return null;
+      }
+      const data = profile || loadLocalProfile();
+      if (!data) {
+        return null;
+      }
+      const now = Date.now();
+      const start = data.startTimestamp || null;
+      const elapsedMinutes = start ? Math.max(0, Math.floor((now - start) / 60000)) : 0;
+      const elapsedHours = elapsedMinutes / 60;
+      const timeline = getLocalTimeline();
+      const phaseDetails = start ? findPhaseFromHours(elapsedHours, timeline) : null;
+      const activeIndex = phaseDetails ? phaseDetails.index : -1;
+      const intervalMinutes = data.hydration && data.hydration.intervalMinutes
+        ? data.hydration.intervalMinutes
+        : data.reminderInterval || DEFAULT_REMINDER_MINUTES;
+      const lastDrink = data.hydration ? data.hydration.lastDrinkTimestamp : null;
+      let nextReminderMinutes = null;
+      if (start && intervalMinutes > 0) {
+        const reference = lastDrink || start;
+        const dueAt = reference + intervalMinutes * 60000;
+        const deltaMinutes = Math.ceil((dueAt - now) / 60000);
+        nextReminderMinutes = deltaMinutes > 0 ? deltaMinutes : 0;
+      }
+      const hydration = {
+        intervalMinutes: intervalMinutes,
+        lastDrinkTimestamp: lastDrink || null,
+        lastDrinkMinutesAgo: lastDrink ? Math.floor((now - lastDrink) / 60000) : null,
+        lastReminderTimestamp: data.hydration ? data.hydration.lastReminderTimestamp || null : null,
+        nextReminderMinutes: nextReminderMinutes
+      };
+      return {
+        status: start ? 'fasting' : 'not_fasting',
+        startTimestamp: start,
+        elapsedMinutes: elapsedMinutes,
+        elapsedHours: elapsedHours,
+        elapsedLabel: start ? formatDurationLabel(elapsedMinutes) : '0h 0m',
+        phase: phaseDetails ? phaseDetails.title : null,
+        phaseDetails: phaseDetails,
+        activePhaseIndex: activeIndex,
+        progressPercent: start ? Math.min(100, Math.round((elapsedHours / PROGRESS_TARGET_HOURS) * 100)) : 0,
+        timeline: timeline,
+        motivationalMessage: buildLocalMotivation(elapsedHours, phaseDetails),
+        hydration: hydration
+      };
+    }
+
+    function persistLocalProfileFromStatus(status) {
+      if (!status || !supportsLocalStorage()) {
+        return;
+      }
+      const profile = getOrCreateLocalProfile();
+      profile.startTimestamp = status.startTimestamp || null;
+      profile.lastKnownElapsedMinutes = status.elapsedMinutes;
+      profile.reminderInterval = status.hydration && status.hydration.intervalMinutes
+        ? status.hydration.intervalMinutes
+        : profile.reminderInterval || DEFAULT_REMINDER_MINUTES;
+      profile.hydration = profile.hydration || {};
+      if (status.hydration) {
+        profile.hydration.intervalMinutes = status.hydration.intervalMinutes;
+        profile.hydration.lastDrinkTimestamp = status.hydration.lastDrinkTimestamp || null;
+        profile.hydration.lastReminderTimestamp = status.hydration.lastReminderTimestamp || null;
+        profile.hydration.nextReminderMinutes = status.hydration.nextReminderMinutes;
+      }
+      if (status.status !== 'fasting') {
+        profile.unlockedMilestones = [];
+      } else if (!Array.isArray(profile.unlockedMilestones)) {
+        profile.unlockedMilestones = [];
+      }
+      profile.lastSynced = Date.now();
+      saveLocalProfile(profile);
+    }
+
+    function getLocalTimeline() {
+      return LOCAL_TIMELINE;
+    }
+
+    function findPhaseFromHours(hours, timeline) {
+      if (!timeline || !timeline.length) {
+        return null;
+      }
+      for (let i = 0; i < timeline.length; i++) {
+        const phase = timeline[i];
+        if (phase.endHours === null) {
+          if (hours >= phase.startHours) {
+            return Object.assign({ index: i }, phase);
+          }
+        } else if (hours >= phase.startHours && hours < phase.endHours) {
+          return Object.assign({ index: i }, phase);
+        }
+      }
+      const lastIndex = timeline.length - 1;
+      return Object.assign({ index: lastIndex }, timeline[lastIndex]);
+    }
+
+    function buildLocalMotivation(hours, phaseDetails) {
+      const baseMessages = [
+        'Every mindful sip powers your focus.',
+        'Smile—your steady rhythm is working.',
+        'Hydration keeps your energy silky smooth.',
+        'Gentle movement keeps the momentum flowing.',
+        'Celebrate this moment—consistency is your superpower.',
+        'Kind self-talk keeps the journey joyful.'
+      ];
+      const index = Math.floor(hours) % baseMessages.length;
+      let message = baseMessages[index];
+      if (!phaseDetails) {
+        return 'Welcome to HydraFast—press “Start Fast” to begin your journey when you feel ready.';
+      }
+      if (phaseDetails.focus) {
+        message = phaseDetails.focus + ' ' + message;
+      }
+      return message;
+    }
+
+    function formatDurationLabel(totalMinutes) {
+      const minutes = Math.max(0, Math.floor(totalMinutes));
+      const hours = Math.floor(minutes / 60);
+      const remainder = minutes % 60;
+      return hours + 'h ' + remainder + 'm';
+    }
+
+    function getOrCreateLocalProfile() {
+      const existing = loadLocalProfile();
+      if (existing) {
+        if (!existing.hydration) {
+          existing.hydration = {};
+        }
+        if (!Array.isArray(existing.unlockedMilestones)) {
+          existing.unlockedMilestones = [];
+        }
+        return existing;
+      }
+      return {
+        startTimestamp: null,
+        hydration: {
+          intervalMinutes: DEFAULT_REMINDER_MINUTES,
+          lastDrinkTimestamp: null,
+          lastReminderTimestamp: null,
+          nextReminderMinutes: null
+        },
+        reminderInterval: DEFAULT_REMINDER_MINUTES,
+        unlockedMilestones: []
+      };
+    }
+
+    function mutateLocalProfile(mutator) {
+      const profile = getOrCreateLocalProfile();
+      mutator(profile);
+      if (!Array.isArray(profile.unlockedMilestones)) {
+        profile.unlockedMilestones = [];
+      }
+      profile.hydration = profile.hydration || {};
+      saveLocalProfile(profile);
+      return profile;
+    }
+
+    function loadLocalProfile() {
+      if (!supportsLocalStorage()) {
+        return null;
+      }
+      const raw = localStorage.getItem(LOCAL_PROFILE_KEY);
+      if (!raw) {
+        return null;
+      }
+      try {
+        return JSON.parse(raw);
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function saveLocalProfile(profile) {
+      if (!supportsLocalStorage()) {
+        return;
+      }
+      try {
+        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(profile));
+      } catch (err) {
+        // Ignore storage write failures (quota, private mode, etc.)
+      }
+    }
+
+    function supportsLocalStorage() {
+      try {
+        return typeof localStorage !== 'undefined' && localStorage !== null;
+      } catch (err) {
+        return false;
+      }
     }
 
     function hasAppsScript() {
