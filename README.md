@@ -1,2 +1,35 @@
 # HydraFast
-Water only Fasting
+
+HydraFast is a mobile-friendly Google Apps Script progressive web app designed to guide users through water-only fasting. It tracks your fasting timeline, keeps hydration front-and-center, and provides motivational coaching every step of the way.
+
+## Features
+- **Interactive fasting timeline** with hour-by-hour phases and focus tips
+- **Start/stop controls** to manage your fast with a single tap
+- **Hydration tracking** including “Drink Water” logging and reminder scheduling
+- **Motivational messaging** that adapts to your current fasting phase
+- **Mobile-first PWA UI** with progress visuals and offline caching support
+
+## Project Structure
+- `Code.gs` – Apps Script backend for fasting logic, hydration reminders, and data storage
+- `index.html` – Frontend user interface served by HtmlService
+- `service-worker.js` – Lightweight cache for progressive web app behavior
+- `manifest.json` – Manifest metadata for installable experience
+- `Agents.md` – Role definitions for the product team
+
+## Setup
+1. Open [Google Apps Script](https://script.google.com) and create a new project.
+2. Add files matching this repository (`Code.gs`, `index.html`, `service-worker.js`, `manifest.json`, `Agents.md`).
+3. Paste the contents from this repo into the respective files.
+4. Deploy the project as a web app (`Deploy > New deployment > Web app`) and set access to **Anyone** or your preferred audience.
+5. Open the deployment URL on your mobile device and add it to your home screen for an app-like experience.
+6. The app serves the manifest and service worker via `?resource=` routes automatically—no extra routing configuration is required.
+
+## Hydration Reminders
+- Reminders are sent via email using Apps Script triggers. Adjust the interval in the app interface.
+- To enable reminders, authorize the script when prompted and ensure email access is granted.
+- The script automatically manages triggers when you start or stop a fast.
+
+## Future Enhancements
+- Push notifications using browser APIs
+- Streak tracking and celebratory milestones
+- Google Fit integration for hydration and activity insights
