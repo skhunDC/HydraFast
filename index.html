@@ -29,6 +29,12 @@
       scroll-behavior: smooth;
     }
 
+    @media (max-width: 480px) {
+      html {
+        font-size: 108%;
+      }
+    }
+
     body {
       font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
       margin: 0;
@@ -62,6 +68,90 @@
       gap: 20px;
       max-width: 460px;
       margin: 0 auto;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0 0 140px;
+      }
+
+      main {
+        max-width: none;
+        padding: 0 16px 48px;
+        gap: 24px;
+      }
+
+      header {
+        padding: 28px 18px 20px;
+      }
+
+      h1 {
+        font-size: clamp(2.2rem, 7vw, 2.8rem);
+      }
+
+      .card {
+        padding: clamp(22px, 6vw, 28px);
+        border-radius: 22px;
+      }
+
+      .progress-ring {
+        width: clamp(220px, 75vw, 260px);
+        height: clamp(220px, 75vw, 260px);
+      }
+
+      .progress-inner {
+        width: clamp(180px, 62vw, 210px);
+        height: clamp(180px, 62vw, 210px);
+        padding: clamp(20px, 6vw, 28px);
+        gap: 10px;
+      }
+
+      .elapsed-time {
+        font-size: clamp(1.9rem, 6vw, 2.2rem);
+      }
+
+      .phase-description {
+        font-size: 1.05rem;
+        line-height: 1.6;
+      }
+
+      .button-group {
+        gap: 16px;
+      }
+
+      button {
+        font-size: 1.05rem;
+        padding: clamp(16px, 5vw, 18px);
+      }
+
+      .feature-grid {
+        gap: 16px;
+      }
+
+      .feature-button {
+        font-size: 1rem;
+        padding: clamp(18px, 6vw, 22px);
+      }
+
+      .feature-button span {
+        font-size: 0.95rem;
+      }
+
+      .circle-tools {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+      }
+
+      .circle-share {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .share-code {
+        font-size: 1.1rem;
+        padding: 10px 16px;
+      }
     }
 
     .card {
