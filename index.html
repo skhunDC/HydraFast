@@ -25,6 +25,10 @@
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
       margin: 0;
@@ -160,6 +164,83 @@
       background: var(--accent);
       color: white;
       box-shadow: 0 12px 24px rgba(255, 123, 84, 0.25);
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    .feature-card {
+      background: linear-gradient(145deg, rgba(0, 180, 216, 0.14), rgba(45, 212, 191, 0.14));
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .feature-button {
+      border: none;
+      border-radius: 18px;
+      padding: 16px 18px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--primary-dark);
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 10px 26px rgba(0, 119, 182, 0.18);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .feature-button:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 3px;
+    }
+
+    .feature-button:active {
+      transform: translateY(2px);
+      box-shadow: 0 6px 18px rgba(0, 119, 182, 0.2);
+    }
+
+    .feature-button .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      background: rgba(0, 180, 216, 0.16);
+      color: var(--primary-dark);
+      box-shadow: inset 0 3px 8px rgba(255, 255, 255, 0.6);
+    }
+
+    .feature-button span {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .card.feature-pulse {
+      animation: featurePulse 0.9s ease;
+    }
+
+    @keyframes featurePulse {
+      0% {
+        box-shadow: var(--shadow);
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(0, 180, 216, 0.15);
+      }
+      100% {
+        box-shadow: var(--shadow);
+      }
     }
 
     .status-banner {
@@ -600,6 +681,43 @@
       font-size: 0.95rem;
     }
 
+    .refeed-card {
+      background: linear-gradient(160deg, rgba(0, 180, 216, 0.1), rgba(45, 212, 191, 0.18));
+      color: var(--primary-dark);
+    }
+
+    .refeed-card.refeed-celebration {
+      box-shadow: 0 18px 44px rgba(255, 123, 84, 0.25);
+      border: 1px solid rgba(255, 123, 84, 0.35);
+    }
+
+    .refeed-highlight {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-weight: 600;
+      color: var(--accent);
+      box-shadow: 0 10px 24px rgba(0, 119, 182, 0.12);
+    }
+
+    .refeed-note {
+      margin-top: 14px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .refeed-list {
+      margin: 16px 0 0;
+      padding-left: 18px;
+      color: var(--primary-dark);
+      line-height: 1.5;
+    }
+
+    .refeed-list li {
+      margin-bottom: 6px;
+    }
+
     .toast {
       position: fixed;
       bottom: 24px;
@@ -647,7 +765,7 @@
   </header>
 
   <main>
-    <section class="card center">
+    <section class="card center" id="statusCard">
       <div class="progress-ring" id="progressRing">
         <div class="progress-inner">
           <div class="elapsed-time" id="elapsedTime">0h 0m</div>
@@ -657,13 +775,40 @@
       <div class="phase-description" id="phaseDescription">Tap “Start Fast” to begin tracking.</div>
     </section>
 
-    <section class="card mission-card">
+    <section class="card mission-card" id="milestoneCard">
       <h2>Milestone Journey</h2>
       <p class="helper-text" id="milestoneMessage">Start your fast to unlock your first milestone boost.</p>
       <div class="milestone-track" id="milestoneTrack"></div>
     </section>
 
-    <section class="card center">
+    <section class="card feature-card" id="featureCard">
+      <h2>Quick Feature Access</h2>
+      <p class="helper-text">Jump straight to the tool you need during your fast.</p>
+      <div class="feature-grid">
+        <button class="feature-button" onclick="scrollToFeature('hydrationCard')">
+          <span class="feature-icon" aria-hidden="true">💧</span>
+          Hydration Coach
+          <span>Log sips and tune reminders.</span>
+        </button>
+        <button class="feature-button" onclick="scrollToFeature('timelineCard')">
+          <span class="feature-icon" aria-hidden="true">🕒</span>
+          Fasting Timeline
+          <span>Explore each healing phase.</span>
+        </button>
+        <button class="feature-button" onclick="scrollToFeature('circleCard')">
+          <span class="feature-icon" aria-hidden="true">🤝</span>
+          Circle Sparks
+          <span>Cheer on friends and share progress.</span>
+        </button>
+        <button class="feature-button" onclick="scrollToFeature('refeedCard')">
+          <span class="feature-icon" aria-hidden="true">🥣</span>
+          Refeeding Guide
+          <span>Break your fast with confidence.</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card center" id="actionCard">
       <div class="button-group">
         <button class="btn-primary" id="startButton" onclick="handleStart()">Start Fast</button>
         <button class="btn-secondary" id="stopButton" onclick="handleStop()" style="display:none;">Stop Fast</button>
@@ -671,7 +816,7 @@
       </div>
     </section>
 
-    <section class="card">
+    <section class="card" id="startCard">
       <h2>Fast Start Time</h2>
       <p class="helper-text">Record the exact moment you began so your fasting phases stay accurate.</p>
       <div class="start-input-group">
@@ -681,7 +826,7 @@
       <p class="start-footnote" id="currentStartDisplay">Choose a start time to begin tracking.</p>
     </section>
 
-    <section class="card">
+    <section class="card" id="hydrationCard">
       <h2>Hydration Focus</h2>
       <div class="hydration-list">
         <div><strong>Last drink:</strong> <span id="lastDrink">--</span></div>
@@ -700,7 +845,7 @@
       </div>
     </section>
 
-    <section class="card social-card">
+    <section class="card social-card" id="circleCard">
       <div class="circle-tools">
         <div>
           <h2>Circle Sparks</h2>
@@ -716,14 +861,27 @@
       <div class="activity-feed" id="circleActivity" aria-live="polite"></div>
     </section>
 
-    <section class="card motivation-card">
+    <section class="card motivation-card" id="motivationCard">
       <h2>Daily Motivation</h2>
       <p id="motivationText">Stay hydrated and take the first step.</p>
     </section>
 
-    <section class="card">
+    <section class="card" id="timelineCard">
       <h2>Fasting Timeline</h2>
       <div class="timeline" id="timeline"></div>
+    </section>
+
+    <section class="card refeed-card" id="refeedCard">
+      <h2>Refeeding Guidance</h2>
+      <p class="helper-text">Ease gently back into nourishment, especially after longer fasts.</p>
+      <div class="refeed-highlight" id="refeedStatus">Plan your first bites before you break the fast to stay intentional.</div>
+      <ul class="refeed-list">
+        <li>Begin with mineral-rich water, diluted juices, or bone broth.</li>
+        <li>Introduce soft, low-fiber foods like steamed vegetables or blended soups.</li>
+        <li>Add lean protein and healthy fats slowly over the next 24 hours.</li>
+        <li>Pause if you feel discomfort and return to liquids until settled.</li>
+      </ul>
+      <p class="refeed-note" id="refeedNote">When you finish a deep fast, your digestive system needs time to wake up. Gentle pacing keeps your energy stable and protects your gut.</p>
     </section>
   </main>
 
@@ -735,6 +893,7 @@
 
   <script>
     let currentStatus = null;
+    let previousStatus = null;
     let isLoading = false;
     let refreshTimer = null;
     let circleState = null;
@@ -743,7 +902,7 @@
     const LOCAL_PROFILE_KEY = 'hydrafast:deviceProfile:v2';
     const LOCAL_CIRCLE_KEY = 'hydrafast:circle:v1';
     const DEFAULT_REMINDER_MINUTES = 120;
-    const PROGRESS_TARGET_HOURS = 72;
+    const PROGRESS_TARGET_HOURS = 168;
     const CIRCLE_RESPONSE_DELAY = { min: 3200, max: 6400 };
     const MILESTONES = [
       {
@@ -754,7 +913,7 @@
       },
       {
         hours: 4,
-        title: 'Metabolic Reset',
+        title: 'Metabolic Spark',
         benefit: 'Blood sugar balances and cravings calm.',
         reward: 'Focus feels smoother.'
       },
@@ -793,6 +952,42 @@
         title: 'Heroic Harmony',
         benefit: 'Deep autophagy sweeps cells clean.',
         reward: 'Whole-body harmony unlocked.'
+      },
+      {
+        hours: 48,
+        title: 'Deep Ketosis',
+        benefit: 'Ketones dominate while inflammation drops dramatically.',
+        reward: 'Mind and body feel freshly renewed.'
+      },
+      {
+        hours: 72,
+        title: 'Immune Reset',
+        benefit: 'New immune cells emerge and resilience rises.',
+        reward: 'Immune system is rebuilding stronger.'
+      },
+      {
+        hours: 96,
+        title: 'Stem Cell Boost',
+        benefit: 'Stem cells activate to repair tissues and organs.',
+        reward: 'You are literally renewing from within.'
+      },
+      {
+        hours: 120,
+        title: 'Metabolic Reset',
+        benefit: 'Hormones rebalance and fat-burning is ultra-efficient.',
+        reward: 'Metabolic flexibility feels effortless.'
+      },
+      {
+        hours: 144,
+        title: 'Deep Regeneration',
+        benefit: 'DNA repair and longevity signals peak.',
+        reward: 'Your cells hum with long-term vitality.'
+      },
+      {
+        hours: 168,
+        title: 'Extended Healing',
+        benefit: 'Maintain only with guidance and mindful refeeding.',
+        reward: 'Pause to refeed with support before extending.'
       }
     ];
 
@@ -861,22 +1056,58 @@
         focus: 'Move gently and celebrate how far you have come.'
       },
       {
-        key: 'clarity',
-        title: 'Deep Clarity',
+        key: 'deep-ketosis',
+        title: 'Deep Ketosis & Regeneration',
         range: '48-72h',
         startHours: 48,
         endHours: 72,
-        description: 'Recovery hormones peak and your body preserves lean muscle.',
-        focus: 'Prioritize calm, sleep, and gratitude for your effort.'
+        description: 'Ketones fuel brain and muscle while inflammation plunges and stem cells begin to rise.',
+        focus: 'Renewal focus: keep electrolytes steady and rest deeply.'
       },
       {
-        key: 'legacy',
-        title: 'Legacy Glow',
-        range: '72h+',
+        key: 'immune-reset',
+        title: 'Immune System Renewal',
+        range: '72-96h',
         startHours: 72,
+        endHours: 96,
+        description: 'Old immune cells clear out as fresh defenders rebuild and gut balance improves.',
+        focus: 'Regeneration focus: stay warm, hydrate, and welcome the reset.'
+      },
+      {
+        key: 'stem-cell',
+        title: 'Stem Cell Activation',
+        range: '96-120h',
+        startHours: 96,
+        endHours: 120,
+        description: 'Stem cells and mitochondria repair tissues, inviting calm alertness.',
+        focus: 'Rejuvenation focus: breathe slowly and honor extra rest.'
+      },
+      {
+        key: 'metabolic-reset',
+        title: 'Hormonal & Metabolic Reset',
+        range: '120-144h',
+        startHours: 120,
+        endHours: 144,
+        description: 'Insulin sensitivity and leptin balance reset while fat-burning efficiency peaks.',
+        focus: 'Optimization focus: hydrate with minerals and move with intention.'
+      },
+      {
+        key: 'deep-regeneration',
+        title: 'Deep Regeneration',
+        range: '144-168h',
+        startHours: 144,
+        endHours: 168,
+        description: 'Cellular waste clearing and DNA repair continue at their height with luminous mental clarity.',
+        focus: 'Longevity focus: stay gentle, journal insights, and rest often.'
+      },
+      {
+        key: 'extended-healing',
+        title: 'Extended Healing',
+        range: '168h+',
+        startHours: 168,
         endHours: null,
-        description: 'You have mastered your rhythm—pause with your health professional before extending further.',
-        focus: 'Reflect, refeed slowly, and note insights for your next journey.'
+        description: 'The body sustains on stored fat and ketones—continue only with professional guidance and mindful refeeding.',
+        focus: 'Maintenance focus: partner with your care team and prioritize refeeding wisdom.'
       }
     ];
 
@@ -923,12 +1154,21 @@
       }
     ];
 
+    function applyRenderedStatus(status) {
+      if (!status) {
+        return;
+      }
+      previousStatus = currentStatus;
+      currentStatus = status;
+      renderStatus(status);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
       initializeMilestones();
       initializeCircle();
       const localStatus = calculateLocalStatus();
       if (localStatus) {
-        renderStatus(localStatus);
+        applyRenderedStatus(localStatus);
       }
       refreshStatus();
       refreshTimer = setInterval(refreshStatus, 60000);
@@ -948,8 +1188,7 @@
         isLoading = false;
         const localStatus = calculateLocalStatus();
         if (localStatus) {
-          currentStatus = localStatus;
-          renderStatus(localStatus);
+          applyRenderedStatus(localStatus);
         } else {
           document.getElementById('statusBanner').textContent = 'HydraFast is ready on this device. Tap “Start Fast” to begin your journey.';
         }
@@ -958,8 +1197,7 @@
       google.script.run
         .withSuccessHandler(function (response) {
           isLoading = false;
-          currentStatus = response;
-          renderStatus(response);
+          applyRenderedStatus(response);
         })
         .withFailureHandler(function (err) {
           isLoading = false;
@@ -987,7 +1225,7 @@
       if (!hasAppsScript()) {
         const status = startLocalFast(timestamp || Date.now());
         if (status) {
-          renderStatus(status);
+          applyRenderedStatus(status);
         }
         showToast('Fast started on this device. Hydrate with intention!');
         return;
@@ -995,8 +1233,7 @@
       setButtonsDisabled(true);
       google.script.run
         .withSuccessHandler(function (response) {
-          currentStatus = response;
-          renderStatus(response);
+          applyRenderedStatus(response);
           showToast('Fast started! Stay hydrated.');
           setButtonsDisabled(false);
         })
@@ -1012,7 +1249,7 @@
       if (!hasAppsScript()) {
         const status = stopLocalFast();
         if (status) {
-          renderStatus(status);
+          applyRenderedStatus(status);
         }
         showToast('Fast ended for this device. Great listening.');
         return;
@@ -1020,8 +1257,7 @@
       setButtonsDisabled(true);
       google.script.run
         .withSuccessHandler(function (response) {
-          currentStatus = response;
-          renderStatus(response);
+          applyRenderedStatus(response);
           showToast('Fast stopped. Reflect on your progress.');
           setButtonsDisabled(false);
         })
@@ -1037,7 +1273,7 @@
       if (!hasAppsScript()) {
         const status = recordLocalDrink();
         if (status) {
-          renderStatus(status);
+          applyRenderedStatus(status);
         }
         showToast('Hydration logged. Keep the flow going!');
         return;
@@ -1045,8 +1281,7 @@
       setButtonsDisabled(true);
       google.script.run
         .withSuccessHandler(function (response) {
-          currentStatus = response;
-          renderStatus(response);
+          applyRenderedStatus(response);
           showToast('Logged a hydration break.');
           setButtonsDisabled(false);
         })
@@ -1062,15 +1297,14 @@
       if (!hasAppsScript()) {
         const status = setLocalReminderInterval(Number(value));
         if (status) {
-          renderStatus(status);
+          applyRenderedStatus(status);
         }
         showToast('Hydration reminders updated for this device.');
         return;
       }
       google.script.run
         .withSuccessHandler(function (response) {
-          currentStatus = response;
-          renderStatus(response);
+          applyRenderedStatus(response);
           showToast('Hydration reminders updated.');
         })
         .withFailureHandler(function (err) {
@@ -1098,7 +1332,7 @@
       if (!hasAppsScript()) {
         const status = setLocalStartTime(timestamp);
         if (status) {
-          renderStatus(status);
+          applyRenderedStatus(status);
         }
         showToast('Start time saved for this device.');
         return;
@@ -1106,8 +1340,7 @@
       setButtonsDisabled(true);
       google.script.run
         .withSuccessHandler(function (response) {
-          currentStatus = response;
-          renderStatus(response);
+          applyRenderedStatus(response);
           showToast('Start time saved. Your fast is now aligned.');
           setButtonsDisabled(false);
         })
@@ -1128,6 +1361,9 @@
       const phaseDescription = document.getElementById('phaseDescription');
       const statusBanner = document.getElementById('statusBanner');
       const reminderSelect = document.getElementById('reminderInterval');
+
+      const endedFast = previousStatus && previousStatus.status === 'fasting' && status.status !== 'fasting';
+      const completedHours = endedFast ? (previousStatus.elapsedHours || 0) : getLastCompletedFastHours();
 
       const isFasting = status.status === 'fasting';
       startButton.style.display = isFasting ? 'none' : 'block';
@@ -1155,6 +1391,10 @@
       updateHydration(status.hydration, isFasting);
       updateMotivation(status.motivationalMessage);
       updateTimeline(status.timeline, status.activePhaseIndex);
+      if (endedFast) {
+        rememberCompletedFast(previousStatus);
+      }
+      updateRefeed(status, endedFast, completedHours);
       persistLocalProfileFromStatus(status);
       updateMilestones(status);
       celebrateMilestones(status);
@@ -1250,6 +1490,90 @@
       setTimeout(function () {
         toast.classList.remove('show');
       }, 2600);
+    }
+
+    function scrollToFeature(targetId) {
+      const target = document.getElementById(targetId);
+      if (!target) {
+        return;
+      }
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.classList.add('feature-pulse');
+      setTimeout(function () {
+        target.classList.remove('feature-pulse');
+      }, 900);
+    }
+
+    function updateRefeed(status, endedFast, completedHours) {
+      const card = document.getElementById('refeedCard');
+      const statusEl = document.getElementById('refeedStatus');
+      const noteEl = document.getElementById('refeedNote');
+      if (!card || !statusEl || !noteEl) {
+        return;
+      }
+      card.classList.remove('refeed-celebration');
+
+      if (status.status === 'fasting') {
+        statusEl.textContent = 'Prep your refeed plan now so your digestive system wakes gently.';
+        noteEl.textContent = 'Line up broth, soft vegetables, and probiotic-rich sips so your first meals stay light and mineral dense.';
+        return;
+      }
+
+      const hours = completedHours || 0;
+      const durationLabel = hours > 0 ? formatDurationLabel(Math.round(hours * 60)) : null;
+      const hasLongFast = hours >= 48;
+      const moderateFast = hours >= 24 && hours < 48;
+
+      if (hasLongFast) {
+        if (endedFast) {
+          card.classList.add('refeed-celebration');
+          statusEl.textContent = 'Beautiful finish! After about ' + (durationLabel || 'your fast') + ', reintroduce nourishment with broth, diluted juices, and soft foods.';
+          noteEl.textContent = 'Spend the next 24–48 hours layering in steamed vegetables, fermented foods, and lean proteins. Pause or return to liquids if your digestion feels uneasy, and stay in touch with your care team.';
+        } else {
+          statusEl.textContent = 'Your recent fast lasted about ' + (durationLabel || 'this long').replace('your fast', 'this fast') + '. Stay on the gentle refeed path a little longer.';
+          noteEl.textContent = 'Continue with broths, soft vegetables, and light proteins until your digestion feels fully settled. Check in with your care team before considering another long fast.';
+        }
+        if (hours >= 168) {
+          noteEl.textContent += ' Extended fasts beyond seven days should remain medically supervised.';
+        }
+        return;
+      }
+
+      if (moderateFast) {
+        statusEl.textContent = 'Great work completing about ' + (durationLabel || 'this fast') + '! Break it with mineral-rich liquids and gentle foods.';
+        noteEl.textContent = 'Add in easy-to-digest proteins and healthy fats gradually over the next day while you keep hydrating between small meals.';
+        return;
+      }
+
+      if (hours > 0) {
+        statusEl.textContent = 'You recently completed roughly ' + (durationLabel || 'your fast') + '. Start with small, mindful portions.';
+        noteEl.textContent = 'Choose broth, yogurt, or blended soups before you return to hearty meals. Listen closely to your hunger cues and slow down if you feel discomfort.';
+        return;
+      }
+
+      statusEl.textContent = 'Plan your first bites before you break the fast to stay intentional.';
+      noteEl.textContent = 'Introduce nourishment in stages: liquids, then soft foods, then balanced meals. Medical guidance is essential for extended fasts.';
+    }
+
+    function rememberCompletedFast(previous) {
+      if (!previous || previous.status !== 'fasting' || !supportsLocalStorage()) {
+        return;
+      }
+      mutateLocalProfile(function (profile) {
+        profile.lastCompletedFastMinutes = previous.elapsedMinutes;
+        profile.lastCompletedFastEndedAt = Date.now();
+      });
+    }
+
+    function getLastCompletedFastHours() {
+      if (!supportsLocalStorage()) {
+        return 0;
+      }
+      const profile = loadLocalProfile();
+      if (profile && profile.lastCompletedFastMinutes) {
+        return profile.lastCompletedFastMinutes / 60;
+      }
+      return 0;
     }
 
     function formatRelativeTime(timestamp) {
@@ -2188,6 +2512,12 @@
         if (!Array.isArray(existing.unlockedMilestones)) {
           existing.unlockedMilestones = [];
         }
+        if (typeof existing.lastCompletedFastMinutes !== 'number') {
+          existing.lastCompletedFastMinutes = 0;
+        }
+        if (!Object.prototype.hasOwnProperty.call(existing, 'lastCompletedFastEndedAt')) {
+          existing.lastCompletedFastEndedAt = null;
+        }
         return existing;
       }
       return {
@@ -2199,7 +2529,9 @@
           nextReminderMinutes: null
         },
         reminderInterval: DEFAULT_REMINDER_MINUTES,
-        unlockedMilestones: []
+        unlockedMilestones: [],
+        lastCompletedFastMinutes: 0,
+        lastCompletedFastEndedAt: null
       };
     }
 
@@ -2210,6 +2542,12 @@
         profile.unlockedMilestones = [];
       }
       profile.hydration = profile.hydration || {};
+      if (typeof profile.lastCompletedFastMinutes !== 'number') {
+        profile.lastCompletedFastMinutes = 0;
+      }
+      if (!Object.prototype.hasOwnProperty.call(profile, 'lastCompletedFastEndedAt')) {
+        profile.lastCompletedFastEndedAt = null;
+      }
       saveLocalProfile(profile);
       return profile;
     }

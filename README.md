@@ -4,11 +4,14 @@ HydraFast is a mobile-friendly Google Apps Script progressive web app designed t
 
 ## Features
 - **Interactive fasting timeline** with hour-by-hour phases and focus tips
+- **Deep healing phase coverage** from 48 hours through 7+ days, including immune renewal and stem cell regeneration milestones
 - **Start/stop controls** to manage your fast with a single tap
 - **Hydration tracking** including “Drink Water” logging and reminder scheduling
 - **Motivational messaging** that adapts to your current fasting phase
 - **Mobile-first PWA UI** with progress visuals and offline caching support
 - **Circle Sparks social layer** for sharing fasting progress, nudging friends, and playful check-ins
+- **Dedicated refeeding guidance** so you can break extended fasts safely and intentionally
+- **Quick feature buttons** for jumping to hydration, timeline, circle, and refeeding tools
 
 ## Project Structure
 - `Code.gs` – Apps Script backend for fasting logic, hydration reminders, and data storage
