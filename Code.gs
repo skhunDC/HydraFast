@@ -65,14 +65,60 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-function startFast() {
+function startFast(customTimestamp) {
+  return applyFastStart(customTimestamp);
+}
+
+function setFastStart(customTimestamp) {
+  return applyFastStart(customTimestamp);
+}
+
+function applyFastStart(customTimestamp) {
   var props = PropertiesService.getUserProperties();
   var now = new Date().getTime();
-  props.setProperty(PROPERTY_KEYS.fastStart, now.toString());
-  props.setProperty(PROPERTY_KEYS.lastDrink, now.toString());
-  props.deleteProperty(PROPERTY_KEYS.lastReminder);
+  var startTime = resolveStartTimestamp(customTimestamp, now);
+  persistFastStart(props, startTime);
   ensureReminderTrigger();
   return getStatus();
+}
+
+function resolveStartTimestamp(customTimestamp, now) {
+  var parsed = null;
+  if (customTimestamp !== undefined && customTimestamp !== null && customTimestamp !== '') {
+    if (typeof customTimestamp === 'number') {
+      parsed = customTimestamp;
+    } else if (typeof customTimestamp === 'string') {
+      parsed = parseInt(customTimestamp, 10);
+      if (isNaN(parsed)) {
+        var fromString = new Date(customTimestamp);
+        if (!isNaN(fromString.getTime())) {
+          parsed = fromString.getTime();
+        }
+      }
+    } else if (customTimestamp instanceof Date) {
+      parsed = customTimestamp.getTime();
+    }
+  }
+  if (!parsed || isNaN(parsed)) {
+    parsed = now;
+  }
+  if (parsed > now) {
+    parsed = now;
+  }
+  return parsed;
+}
+
+function persistFastStart(props, startTime) {
+  var previousStartValue = props.getProperty(PROPERTY_KEYS.fastStart);
+  var previousStart = previousStartValue ? parseInt(previousStartValue, 10) : null;
+  var startValue = startTime.toString();
+  props.setProperty(PROPERTY_KEYS.fastStart, startValue);
+  var lastDrinkValue = props.getProperty(PROPERTY_KEYS.lastDrink);
+  var lastDrink = lastDrinkValue ? parseInt(lastDrinkValue, 10) : null;
+  if (!lastDrink || lastDrink < startTime || (previousStart && lastDrink === previousStart)) {
+    props.setProperty(PROPERTY_KEYS.lastDrink, startValue);
+  }
+  props.deleteProperty(PROPERTY_KEYS.lastReminder);
 }
 
 function stopFast() {

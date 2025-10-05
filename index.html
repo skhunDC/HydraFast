@@ -203,6 +203,16 @@
       margin-bottom: 6px;
     }
 
+    input[type="datetime-local"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #cfe6ff;
+      font-size: 1rem;
+      background: #f8fcff;
+      color: var(--text);
+    }
+
     select {
       width: 100%;
       padding: 12px;
@@ -211,6 +221,29 @@
       font-size: 1rem;
       background: #f8fcff;
       color: var(--text);
+    }
+
+    .helper-text {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .start-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .start-input-group button {
+      width: 100%;
+    }
+
+    .start-footnote {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
     }
 
     .timeline {
@@ -319,6 +352,16 @@
     </section>
 
     <section class="card">
+      <h2>Fast Start Time</h2>
+      <p class="helper-text">Record the exact moment you began so your fasting phases stay accurate.</p>
+      <div class="start-input-group">
+        <input type="datetime-local" id="fastStartInput" aria-label="Fast start date and time">
+        <button class="btn-secondary" id="setStartTimeButton" onclick="handleSaveStartTime()">Save Start Time</button>
+      </div>
+      <p class="start-footnote" id="currentStartDisplay">Choose a start time to begin tracking.</p>
+    </section>
+
+    <section class="card">
       <h2>Hydration Focus</h2>
       <div class="hydration-list">
         <div><strong>Last drink:</strong> <span id="lastDrink">--</span></div>
@@ -398,6 +441,20 @@
         showToast('Connect to Apps Script to start tracking.');
         return;
       }
+      let timestamp = null;
+      const input = document.getElementById('fastStartInput');
+      if (input && input.value) {
+        const parsed = Date.parse(input.value);
+        if (isNaN(parsed)) {
+          showToast('Start time is not valid.');
+          return;
+        }
+        if (parsed > Date.now()) {
+          showToast('Start time cannot be in the future.');
+          return;
+        }
+        timestamp = parsed;
+      }
       setButtonsDisabled(true);
       google.script.run
         .withSuccessHandler(function (response) {
@@ -411,7 +468,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .startFast();
+        .startFast(timestamp);
     }
 
     function handleStop() {
@@ -474,6 +531,41 @@
         .setReminderInterval(value);
     }
 
+    function handleSaveStartTime() {
+      if (!hasAppsScript()) {
+        showToast('Connect to Apps Script to update your start time.');
+        return;
+      }
+      const input = document.getElementById('fastStartInput');
+      if (!input || !input.value) {
+        showToast('Choose a start date and time first.');
+        return;
+      }
+      const timestamp = Date.parse(input.value);
+      if (isNaN(timestamp)) {
+        showToast('Start time is not valid.');
+        return;
+      }
+      if (timestamp > Date.now()) {
+        showToast('Start time cannot be in the future.');
+        return;
+      }
+      setButtonsDisabled(true);
+      google.script.run
+        .withSuccessHandler(function (response) {
+          currentStatus = response;
+          renderStatus(response);
+          showToast('Start time saved. Your fast is now aligned.');
+          setButtonsDisabled(false);
+        })
+        .withFailureHandler(function (err) {
+          showToast('Could not save start time. Please try again.');
+          console.error(err);
+          setButtonsDisabled(false);
+        })
+        .setFastStart(timestamp);
+    }
+
     function renderStatus(status) {
       const startButton = document.getElementById('startButton');
       const stopButton = document.getElementById('stopButton');
@@ -506,9 +598,25 @@
       const intervalValue = String(status.hydration.intervalMinutes);
       ensureReminderOption(reminderSelect, intervalValue);
       reminderSelect.value = intervalValue;
+      updateStartInputs(status);
       updateHydration(status.hydration, isFasting);
       updateMotivation(status.motivationalMessage);
       updateTimeline(status.timeline, status.activePhaseIndex);
+    }
+
+    function updateStartInputs(status) {
+      const input = document.getElementById('fastStartInput');
+      const display = document.getElementById('currentStartDisplay');
+      if (!input || !display) {
+        return;
+      }
+      if (status.startTimestamp) {
+        input.value = formatDateTimeLocal(status.startTimestamp);
+        display.textContent = 'Tracking since ' + formatExactDateTime(status.startTimestamp) + '.';
+      } else {
+        input.value = formatDateTimeLocal(Date.now());
+        display.textContent = 'Choose a start time to begin tracking.';
+      }
     }
 
     function updateHydration(hydration, isFasting) {
@@ -562,6 +670,14 @@
       document.getElementById('startButton').disabled = disabled;
       document.getElementById('stopButton').disabled = disabled;
       document.getElementById('drinkButton').disabled = disabled;
+      const setStartButton = document.getElementById('setStartTimeButton');
+      if (setStartButton) {
+        setStartButton.disabled = disabled;
+      }
+      const fastStartInput = document.getElementById('fastStartInput');
+      if (fastStartInput) {
+        fastStartInput.disabled = disabled;
+      }
     }
 
     function showToast(message) {
@@ -626,6 +742,26 @@
         return hours + (hours === 1 ? ' hour' : ' hours');
       }
       return hours + 'h ' + remainder + 'm';
+    }
+
+    function formatDateTimeLocal(timestamp) {
+      if (!timestamp) {
+        return '';
+      }
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return offsetDate.toISOString().slice(0, 16);
+    }
+
+    function formatExactDateTime(timestamp) {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return '--';
+      }
+      return date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
     }
 
     function hasAppsScript() {
