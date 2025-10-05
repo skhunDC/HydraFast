@@ -1,0 +1,10 @@
+{
+  "name": "HydraFast",
+  "short_name": "HydraFast",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f0f9ff",
+  "theme_color": "#00b4d8",
+  "description": "Track fasting phases, hydration reminders, and motivation in a calming experience.",
+  "icons": []
+}

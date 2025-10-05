@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#00b4d8">
+  <link rel="manifest" href="?resource=manifest">
+  <title>HydraFast</title>
+  <style>
+    :root {
+      --primary: #00b4d8;
+      --primary-dark: #0077b6;
+      --accent: #ff7b54;
+      --surface: #ffffff;
+      --background: #f0f9ff;
+      --text: #1f2933;
+      --muted: #64748b;
+      --success: #2dd4bf;
+      --radius: 18px;
+      --shadow: 0 15px 40px rgba(15, 94, 156, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0 0 48px;
+      background: linear-gradient(180deg, #e0f6ff 0%, var(--background) 60%);
+      color: var(--text);
+      text-align: center;
+    }
+
+    header {
+      padding: 24px 20px 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      color: var(--primary-dark);
+      letter-spacing: 1px;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      color: var(--primary-dark);
+    }
+
+    main {
+      padding: 0 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      text-align: left;
+    }
+
+    .card.center {
+      text-align: center;
+    }
+
+    .progress-ring {
+      --progress: 0;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      background: conic-gradient(var(--primary) calc(var(--progress) * 1%), #d9ecff 0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.6s ease;
+    }
+
+    .progress-inner {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: var(--surface);
+      box-shadow: inset 0 6px 18px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 6px;
+    }
+
+    .elapsed-time {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .phase-label {
+      font-size: 1rem;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .phase-description {
+      margin-top: 8px;
+      font-size: 1rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .button-group {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    button {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 12px 24px rgba(0, 180, 216, 0.25);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: progress;
+    }
+
+    .btn-secondary {
+      background: #e2f2ff;
+      color: var(--primary-dark);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 12px 24px rgba(255, 123, 84, 0.25);
+    }
+
+    .status-banner {
+      margin: 0 auto 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(0, 180, 216, 0.12);
+      color: var(--primary-dark);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .motivation-card {
+      background: linear-gradient(135deg, rgba(0, 180, 216, 0.12), rgba(45, 212, 191, 0.25));
+      color: var(--primary-dark);
+    }
+
+    .motivation-card p {
+      margin: 0;
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+
+    .hydration-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .hydration-list strong {
+      color: var(--primary-dark);
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #cfe6ff;
+      font-size: 1rem;
+      background: #f8fcff;
+      color: var(--text);
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .timeline-phase {
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #f6fbff;
+      border: 1px solid transparent;
+      transition: border 0.3s ease, transform 0.3s ease;
+    }
+
+    .timeline-phase.active {
+      border-color: var(--primary);
+      transform: translateX(4px);
+      background: rgba(0, 180, 216, 0.1);
+    }
+
+    .timeline-phase h3 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      color: var(--primary-dark);
+    }
+
+    .timeline-phase .range {
+      font-size: 0.85rem;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .timeline-phase p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      background: var(--primary-dark);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 999px;
+      box-shadow: 0 20px 45px rgba(0, 119, 182, 0.35);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      font-size: 0.95rem;
+      z-index: 10;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @media (min-width: 640px) {
+      body {
+        background: radial-gradient(circle at top, rgba(0, 180, 216, 0.12), transparent 60%), var(--background);
+      }
+      header {
+        padding-top: 48px;
+      }
+      main {
+        padding-bottom: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>HydraFast</h1>
+    <p class="status-banner" id="statusBanner">Loading your fasting status…</p>
+  </header>
+
+  <main>
+    <section class="card center">
+      <div class="progress-ring" id="progressRing">
+        <div class="progress-inner">
+          <div class="elapsed-time" id="elapsedTime">0h 0m</div>
+          <div class="phase-label" id="phaseLabel">Getting ready</div>
+        </div>
+      </div>
+      <div class="phase-description" id="phaseDescription">Tap “Start Fast” to begin tracking.</div>
+    </section>
+
+    <section class="card center">
+      <div class="button-group">
+        <button class="btn-primary" id="startButton" onclick="handleStart()">Start Fast</button>
+        <button class="btn-secondary" id="stopButton" onclick="handleStop()" style="display:none;">Stop Fast</button>
+        <button class="btn-accent" id="drinkButton" onclick="handleDrink()">Drink Water</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Hydration Focus</h2>
+      <div class="hydration-list">
+        <div><strong>Last drink:</strong> <span id="lastDrink">--</span></div>
+        <div><strong>Next reminder:</strong> <span id="nextReminder">--</span></div>
+      </div>
+      <div style="margin-top:16px;">
+        <label for="reminderInterval">Send hydration reminder every</label>
+        <select id="reminderInterval" onchange="handleReminderChange(this.value)">
+          <option value="30">30 minutes</option>
+          <option value="45">45 minutes</option>
+          <option value="60">60 minutes</option>
+          <option value="90">90 minutes</option>
+          <option value="120">120 minutes</option>
+          <option value="180">180 minutes</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="card motivation-card">
+      <h2>Daily Motivation</h2>
+      <p id="motivationText">Stay hydrated and take the first step.</p>
+    </section>
+
+    <section class="card">
+      <h2>Fasting Timeline</h2>
+      <div class="timeline" id="timeline"></div>
+    </section>
+  </main>
+
+  <footer>
+    Hydrate, breathe, and listen to your body.
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let currentStatus = null;
+    let isLoading = false;
+    let refreshTimer = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      refreshStatus();
+      refreshTimer = setInterval(refreshStatus, 60000);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('?resource=service-worker', { scope: './' }).catch(function () {
+          // ignore failures silently
+        });
+      }
+    });
+
+    function refreshStatus() {
+      if (isLoading) {
+        return;
+      }
+      isLoading = true;
+      if (!hasAppsScript()) {
+        isLoading = false;
+        document.getElementById('statusBanner').textContent = 'Connect to Apps Script to start tracking your fast.';
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function (response) {
+          isLoading = false;
+          currentStatus = response;
+          renderStatus(response);
+        })
+        .withFailureHandler(function (err) {
+          isLoading = false;
+          showToast('Unable to refresh status. Please try again.');
+          console.error(err);
+        })
+        .getStatus();
+    }
+
+    function handleStart() {
+      if (!hasAppsScript()) {
+        showToast('Connect to Apps Script to start tracking.');
+        return;
+      }
+      setButtonsDisabled(true);
+      google.script.run
+        .withSuccessHandler(function (response) {
+          currentStatus = response;
+          renderStatus(response);
+          showToast('Fast started! Stay hydrated.');
+          setButtonsDisabled(false);
+        })
+        .withFailureHandler(function (err) {
+          showToast('Could not start fast. Please try again.');
+          console.error(err);
+          setButtonsDisabled(false);
+        })
+        .startFast();
+    }
+
+    function handleStop() {
+      if (!hasAppsScript()) {
+        showToast('Connect to Apps Script to stop your fast.');
+        return;
+      }
+      setButtonsDisabled(true);
+      google.script.run
+        .withSuccessHandler(function (response) {
+          currentStatus = response;
+          renderStatus(response);
+          showToast('Fast stopped. Reflect on your progress.');
+          setButtonsDisabled(false);
+        })
+        .withFailureHandler(function (err) {
+          showToast('Could not stop fast. Please try again.');
+          console.error(err);
+          setButtonsDisabled(false);
+        })
+        .stopFast();
+    }
+
+    function handleDrink() {
+      if (!hasAppsScript()) {
+        showToast('Connect to Apps Script to log hydration.');
+        return;
+      }
+      setButtonsDisabled(true);
+      google.script.run
+        .withSuccessHandler(function (response) {
+          currentStatus = response;
+          renderStatus(response);
+          showToast('Logged a hydration break.');
+          setButtonsDisabled(false);
+        })
+        .withFailureHandler(function (err) {
+          showToast('Could not log hydration.');
+          console.error(err);
+          setButtonsDisabled(false);
+        })
+        .recordHydration();
+    }
+
+    function handleReminderChange(value) {
+      if (!hasAppsScript()) {
+        showToast('Connect to Apps Script to schedule reminders.');
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function (response) {
+          currentStatus = response;
+          renderStatus(response);
+          showToast('Hydration reminders updated.');
+        })
+        .withFailureHandler(function (err) {
+          showToast('Unable to update reminders.');
+          console.error(err);
+        })
+        .setReminderInterval(value);
+    }
+
+    function renderStatus(status) {
+      const startButton = document.getElementById('startButton');
+      const stopButton = document.getElementById('stopButton');
+      const progressRing = document.getElementById('progressRing');
+      const elapsedTime = document.getElementById('elapsedTime');
+      const phaseLabel = document.getElementById('phaseLabel');
+      const phaseDescription = document.getElementById('phaseDescription');
+      const statusBanner = document.getElementById('statusBanner');
+      const reminderSelect = document.getElementById('reminderInterval');
+
+      const isFasting = status.status === 'fasting';
+      startButton.style.display = isFasting ? 'none' : 'block';
+      stopButton.style.display = isFasting ? 'block' : 'none';
+
+      const elapsedLabel = isFasting ? status.elapsedLabel : '0h 0m';
+      elapsedTime.textContent = elapsedLabel;
+      const activePhase = status.phaseDetails;
+      phaseLabel.textContent = isFasting && activePhase ? activePhase.title : 'Ready to begin';
+      phaseDescription.textContent = isFasting && activePhase ? activePhase.description : 'Tap “Start Fast” to begin tracking.';
+
+      const progress = isFasting ? status.progressPercent : 0;
+      progressRing.style.setProperty('--progress', progress);
+
+      if (isFasting && activePhase) {
+        statusBanner.textContent = 'You are in ' + activePhase.title + ' • ' + activePhase.range + '. Stay hydrated!';
+      } else {
+        statusBanner.textContent = 'Press “Start Fast” to begin your hydration-focused fast.';
+      }
+
+      const intervalValue = String(status.hydration.intervalMinutes);
+      ensureReminderOption(reminderSelect, intervalValue);
+      reminderSelect.value = intervalValue;
+      updateHydration(status.hydration, isFasting);
+      updateMotivation(status.motivationalMessage);
+      updateTimeline(status.timeline, status.activePhaseIndex);
+    }
+
+    function updateHydration(hydration, isFasting) {
+      const lastDrinkEl = document.getElementById('lastDrink');
+      const nextReminderEl = document.getElementById('nextReminder');
+
+      if (!hydration.lastDrinkTimestamp) {
+        lastDrinkEl.textContent = isFasting ? 'Just getting started' : 'Log a drink when you begin fasting';
+      } else {
+        lastDrinkEl.textContent = formatRelativeTime(hydration.lastDrinkTimestamp);
+      }
+
+      if (hydration.nextReminderMinutes === null || hydration.nextReminderMinutes === undefined) {
+        nextReminderEl.textContent = isFasting ? 'Reminders will begin soon' : 'Start fasting to activate reminders';
+      } else if (hydration.nextReminderMinutes === 0) {
+        nextReminderEl.textContent = 'Reminder due now';
+      } else {
+        nextReminderEl.textContent = 'In ' + formatMinutes(hydration.nextReminderMinutes);
+      }
+    }
+
+    function updateMotivation(message) {
+      const motivationEl = document.getElementById('motivationText');
+      motivationEl.textContent = message || 'Hydrate and listen to your body.';
+    }
+
+    function updateTimeline(timeline, activeIndex) {
+      const container = document.getElementById('timeline');
+      container.innerHTML = '';
+      if (!timeline || !Array.isArray(timeline)) {
+        return;
+      }
+      timeline.forEach(function (phase, index) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'timeline-phase' + (index === activeIndex ? ' active' : '');
+        const title = document.createElement('h3');
+        title.textContent = phase.title;
+        const range = document.createElement('div');
+        range.className = 'range';
+        range.textContent = phase.range;
+        const description = document.createElement('p');
+        description.textContent = phase.description;
+        wrapper.appendChild(range);
+        wrapper.appendChild(title);
+        wrapper.appendChild(description);
+        container.appendChild(wrapper);
+      });
+    }
+
+    function setButtonsDisabled(disabled) {
+      document.getElementById('startButton').disabled = disabled;
+      document.getElementById('stopButton').disabled = disabled;
+      document.getElementById('drinkButton').disabled = disabled;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(function () {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+
+    function formatRelativeTime(timestamp) {
+      const deltaMinutes = Math.floor((Date.now() - timestamp) / 60000);
+      if (deltaMinutes <= 0) {
+        return 'Just now';
+      }
+      if (deltaMinutes < 60) {
+        return deltaMinutes + ' min ago';
+      }
+      const hours = Math.floor(deltaMinutes / 60);
+      const minutes = deltaMinutes % 60;
+      return hours + 'h ' + minutes + 'm ago';
+    }
+
+    function formatMinutes(minutes) {
+      if (minutes < 60) {
+        return minutes + ' min';
+      }
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      if (mins === 0) {
+        return hours + ' hr';
+      }
+      return hours + ' hr ' + mins + ' min';
+    }
+
+    function ensureReminderOption(select, value) {
+      let hasOption = false;
+      Array.prototype.forEach.call(select.options, function (option) {
+        if (option.value === value) {
+          hasOption = true;
+        }
+      });
+      if (!hasOption) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = formatIntervalLabel(Number(value));
+        select.appendChild(option);
+      }
+    }
+
+    function formatIntervalLabel(minutes) {
+      if (!minutes || isNaN(minutes)) {
+        return 'Custom';
+      }
+      if (minutes < 60) {
+        return minutes + ' minutes';
+      }
+      const hours = Math.floor(minutes / 60);
+      const remainder = minutes % 60;
+      if (remainder === 0) {
+        return hours + (hours === 1 ? ' hour' : ' hours');
+      }
+      return hours + 'h ' + remainder + 'm';
+    }
+
+    function hasAppsScript() {
+      return typeof google !== 'undefined' && google.script && google.script.run;
+    }
+  </script>
+</body>
+</html>
