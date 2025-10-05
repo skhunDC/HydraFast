@@ -8,6 +8,7 @@ HydraFast is a mobile-friendly Google Apps Script progressive web app designed t
 - **Hydration tracking** including “Drink Water” logging and reminder scheduling
 - **Motivational messaging** that adapts to your current fasting phase
 - **Mobile-first PWA UI** with progress visuals and offline caching support
+- **Circle Sparks social layer** for sharing fasting progress, nudging friends, and playful check-ins
 
 ## Project Structure
 - `Code.gs` – Apps Script backend for fasting logic, hydration reminders, and data storage
@@ -28,6 +29,11 @@ HydraFast is a mobile-friendly Google Apps Script progressive web app designed t
 - Reminders are sent via email using Apps Script triggers. Adjust the interval in the app interface.
 - To enable reminders, authorize the script when prompted and ensure email access is granted.
 - The script automatically manages triggers when you start or stop a fast.
+
+## Circle Sparks
+- Share the auto-generated invite code with friends to join your accountability circle.
+- Send **waves** for playful nudges, fire a **circle pulse** to ask everyone if they are still fasting, or **pulse check** individual friends for quick status updates.
+- The activity feed highlights who replied, who needs a reminder, and when hydration wins happen—keeping the experience light, social, and addictive.
 
 ## Future Enhancements
 - Push notifications using browser APIs
