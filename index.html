@@ -32,7 +32,7 @@
     body {
       font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
       margin: 0;
-      padding: 0 0 48px;
+      padding: 0 0 120px;
       background: linear-gradient(180deg, #e0f6ff 0%, var(--background) 60%);
       color: var(--text);
       text-align: center;
@@ -720,7 +720,7 @@
 
     .toast {
       position: fixed;
-      bottom: 24px;
+      bottom: 96px;
       left: 50%;
       transform: translateX(-50%) translateY(100%);
       background: var(--primary-dark);
@@ -731,7 +731,7 @@
       opacity: 0;
       transition: transform 0.3s ease, opacity 0.3s ease;
       font-size: 0.95rem;
-      z-index: 10;
+      z-index: 30;
     }
 
     .toast.show {
@@ -739,10 +739,64 @@
       opacity: 1;
     }
 
-    footer {
-      margin-top: 20px;
+    .mobile-nav {
+      position: fixed;
+      inset: auto 0 16px;
+      width: min(480px, calc(100% - 24px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 20px 45px rgba(0, 119, 182, 0.25);
+      z-index: 15;
+    }
+
+    .mobile-nav__item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px 6px;
+      border-radius: 18px;
+      background: transparent;
       color: var(--muted);
-      font-size: 0.85rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      border: none;
+      box-shadow: none;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+    }
+
+    .mobile-nav__item .icon {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .mobile-nav__item.is-active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 12px 28px rgba(0, 119, 182, 0.28);
+      transform: translateY(-2px);
+    }
+
+    .mobile-nav__item:active {
+      transform: translateY(1px);
+    }
+
+    .mobile-nav__item.is-active:active {
+      transform: translateY(-1px);
+    }
+
+    .mobile-nav__item:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.8);
+      outline-offset: 2px;
     }
 
     @media (min-width: 640px) {
@@ -755,6 +809,15 @@
       main {
         padding-bottom: 60px;
       }
+      .mobile-nav {
+        bottom: 24px;
+      }
+    }
+
+    footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.85rem;
     }
   </style>
 </head>
@@ -884,6 +947,29 @@
       <p class="refeed-note" id="refeedNote">When you finish a deep fast, your digestive system needs time to wake up. Gentle pacing keeps your energy stable and protects your gut.</p>
     </section>
   </main>
+
+  <nav class="mobile-nav" aria-label="Primary">
+    <button class="mobile-nav__item is-active" data-target="statusCard" aria-label="Go to fasting status">
+      <span class="icon" aria-hidden="true">⏱️</span>
+      <span>Status</span>
+    </button>
+    <button class="mobile-nav__item" data-target="actionCard" aria-label="Go to quick actions">
+      <span class="icon" aria-hidden="true">⚡</span>
+      <span>Actions</span>
+    </button>
+    <button class="mobile-nav__item" data-target="hydrationCard" aria-label="Go to hydration reminders">
+      <span class="icon" aria-hidden="true">💧</span>
+      <span>Hydrate</span>
+    </button>
+    <button class="mobile-nav__item" data-target="circleCard" aria-label="Go to circle sparks">
+      <span class="icon" aria-hidden="true">🤝</span>
+      <span>Circle</span>
+    </button>
+    <button class="mobile-nav__item" data-target="timelineCard" aria-label="Go to fasting timeline">
+      <span class="icon" aria-hidden="true">🗓️</span>
+      <span>Timeline</span>
+    </button>
+  </nav>
 
   <footer>
     Hydrate, breathe, and listen to your body.
@@ -2564,6 +2650,65 @@
         return JSON.parse(raw);
       } catch (err) {
         return null;
+      }
+    }
+
+    const mobileNavButtons = Array.from(document.querySelectorAll('.mobile-nav__item'));
+    if (mobileNavButtons.length) {
+      const motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+
+      function updateActiveMobileNav(targetButton) {
+        if (!targetButton) {
+          return;
+        }
+        mobileNavButtons.forEach((button) => {
+          button.classList.toggle('is-active', button === targetButton);
+        });
+      }
+
+      function scrollToSection(section) {
+        if (!section) {
+          return;
+        }
+        const prefersReducedMotion = motionQuery ? motionQuery.matches : false;
+        try {
+          section.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+        } catch (err) {
+          section.scrollIntoView(true);
+        }
+      }
+
+      mobileNavButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const targetId = button.dataset.target;
+          const section = targetId ? document.getElementById(targetId) : null;
+          scrollToSection(section);
+          updateActiveMobileNav(button);
+        });
+      });
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const matchingButton = mobileNavButtons.find((button) => button.dataset.target === entry.target.id);
+                updateActiveMobileNav(matchingButton);
+              }
+            });
+          },
+          {
+            rootMargin: '-45% 0px -45% 0px',
+            threshold: 0.2
+          }
+        );
+
+        mobileNavButtons.forEach((button) => {
+          const section = document.getElementById(button.dataset.target);
+          if (section) {
+            observer.observe(section);
+          }
+        });
       }
     }
 
