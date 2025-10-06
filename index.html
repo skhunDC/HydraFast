@@ -541,6 +541,22 @@
       color: var(--primary-dark);
     }
 
+    .member-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(100, 116, 139, 0.18);
+      color: var(--muted);
+    }
+
+    .member-tag.virtual {
+      background: rgba(72, 202, 228, 0.22);
+      color: var(--primary-dark);
+    }
+
     .member-note {
       font-size: 0.88rem;
       color: var(--muted);
@@ -1159,10 +1175,36 @@
     const LOCAL_SESSION_KEY = 'hydrafast:sessionId:v1';
     const LOCAL_PROFILE_KEY = 'hydrafast:deviceProfile:v2';
     const LOCAL_CIRCLE_KEY = 'hydrafast:circle:v1';
+    const LOCAL_SHARE_CODE_KEY = 'hydrafast:circle:share:v1';
+    const VIRTUAL_MEMBER_STATE_KEY = 'hydrafast:circle:virtual-state:v1';
+    const VIRTUAL_MEMBER_MAX_HYDRATION_MINUTES = 360;
+    const VIRTUAL_MEMBER_REFRESH_MINUTES = 5;
     const DEFAULT_REMINDER_MINUTES = 120;
     const PROGRESS_TARGET_HOURS = 168;
     const CIRCLE_RESPONSE_DELAY = { min: 3200, max: 6400 };
     const CIRCLE_CONNECTION_DELAY = { min: 2600, max: 5200 };
+    const VIRTUAL_MEMBER_MESSAGES = {
+      fasting: [
+        function (name) { return name + ' is gliding through the fast and feels laser-focused.'; },
+        function (name) { return name + ' says: "Locked in and sipping electrolytes."'; },
+        function (name) { return name + ' is cruising in Ketone Glow and sharing calm energy.'; }
+      ],
+      paused: [
+        function (name) { return name + ' paused to refuel mindfully before the next round.'; },
+        function (name) { return name + ' is taking a breather and journaling the wins.'; },
+        function (name) { return name + ' pressed pause to listen to recovery cues.'; }
+      ],
+      planning: [
+        function (name) { return name + ' is mapping out the next fast and prepping bottles.'; },
+        function (name) { return name + ' lined up reminders for tomorrow’s dawn start.'; },
+        function (name) { return name + ' is setting intentions for a smooth launch.'; }
+      ],
+      hydrated: [
+        function (name) { return name + ' logged a hydration win and feels refreshed.'; },
+        function (name) { return name + ' just refilled their bottle with minerals.'; },
+        function (name) { return name + ' took a mindful sip and sent you encouragement.'; }
+      ]
+    };
     const MILESTONES = [
       {
         hours: 0,
@@ -2113,7 +2155,9 @@
           lastHydrationMinutes: null,
           streak: 0,
           responseMessage: 'Your circle will light up once you start your next fast.',
-          checkInState: 'idle'
+          checkInState: 'idle',
+          kind: 'self',
+          isVirtual: false
         },
         {
           id: 'ava',
@@ -2125,7 +2169,9 @@
           lastHydrationMinutes: 38,
           streak: 3,
           responseMessage: 'Ava is gliding through Ketone Glow and feeling focused.',
-          checkInState: 'idle'
+          checkInState: 'idle',
+          kind: 'virtual',
+          isVirtual: true
         },
         {
           id: 'marco',
@@ -2137,7 +2183,9 @@
           lastHydrationMinutes: 75,
           streak: 5,
           responseMessage: 'Marco scheduled a sunset fast—send a wave to lock it in.',
-          checkInState: 'idle'
+          checkInState: 'idle',
+          kind: 'virtual',
+          isVirtual: true
         },
         {
           id: 'zoe',
@@ -2149,15 +2197,66 @@
           lastHydrationMinutes: 120,
           streak: 2,
           responseMessage: 'Zoe paused for a mindful refeed—she’ll restart tonight.',
-          checkInState: 'idle'
+          checkInState: 'idle',
+          kind: 'virtual',
+          isVirtual: true
         }
       ];
     }
 
     function createShareCode() {
-      const randomPart = Math.random().toString(36).slice(-4).toUpperCase();
-      const timePart = Date.now().toString().slice(-2);
-      return 'HF-' + timePart + randomPart;
+      const stored = getStoredShareCode();
+      if (stored) {
+        return stored;
+      }
+      const code = generateShareCodeValue();
+      persistShareCode(code);
+      return code;
+    }
+
+    function generateShareCodeValue() {
+      const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const segmentLength = 4;
+      let segment = '';
+      if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+        const bytes = new Uint32Array(segmentLength);
+        window.crypto.getRandomValues(bytes);
+        for (let i = 0; i < segmentLength; i += 1) {
+          segment += alphabet.charAt(bytes[i] % alphabet.length);
+        }
+      } else {
+        for (let i = 0; i < segmentLength; i += 1) {
+          segment += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        }
+      }
+      const timePart = Date.now().toString(36).toUpperCase().slice(-2);
+      return 'HF-' + timePart + segment;
+    }
+
+    function getStoredShareCode() {
+      if (!supportsLocalStorage()) {
+        return null;
+      }
+      try {
+        const stored = localStorage.getItem(LOCAL_SHARE_CODE_KEY);
+        return stored && isValidShareCode(stored) ? stored : null;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function persistShareCode(code) {
+      if (!supportsLocalStorage() || !isValidShareCode(code)) {
+        return;
+      }
+      try {
+        const existing = localStorage.getItem(LOCAL_SHARE_CODE_KEY);
+        if (existing !== code) {
+          localStorage.setItem(LOCAL_SHARE_CODE_KEY, code);
+        }
+      } catch (err) {
+        // ignore quota issues silently
+      }
     }
 
     function isValidShareCode(code) {
@@ -2165,8 +2264,10 @@
     }
 
     function normalizeCircle(circle) {
-      if (!circle.shareCode) {
+      if (!circle.shareCode || !isValidShareCode(circle.shareCode)) {
         circle.shareCode = createShareCode();
+      } else {
+        persistShareCode(circle.shareCode);
       }
       if (!Array.isArray(circle.members) || !circle.members.length) {
         circle.members = createDefaultMembers();
@@ -2201,6 +2302,7 @@
       if (circle.activity.length > 25) {
         circle.activity = circle.activity.slice(circle.activity.length - 25);
       }
+      applyVirtualMemberSimulation(circle);
       return circle;
     }
 
@@ -2221,7 +2323,305 @@
       normalized.responseMessage = normalized.responseMessage || 'Send a wave to say hello.';
       normalized.checkInState = normalized.checkInState || 'idle';
       normalized.nudgeCount = normalized.nudgeCount || 0;
+      const isSelf = normalized.id === 'you';
+      if (isSelf) {
+        normalized.isVirtual = false;
+        normalized.kind = 'self';
+      } else {
+        const explicitVirtual = normalized.kind === 'virtual' || normalized.isVirtual === true;
+        const explicitReal = normalized.kind === 'real' || normalized.isVirtual === false;
+        if (explicitVirtual) {
+          normalized.isVirtual = true;
+          normalized.kind = 'virtual';
+        } else if (explicitReal) {
+          normalized.isVirtual = false;
+          normalized.kind = 'real';
+        } else {
+          normalized.isVirtual = false;
+          normalized.kind = 'real';
+        }
+      }
       return normalized;
+    }
+
+    function applyVirtualMemberSimulation(circle) {
+      if (!circle || !Array.isArray(circle.members)) {
+        return;
+      }
+      const state = loadVirtualMemberState();
+      const now = Date.now();
+      let changed = false;
+      circle.members.forEach(function (member) {
+        if (!member || !member.isVirtual) {
+          if (member) {
+            if (member.id === 'you') {
+              member.kind = 'self';
+            } else if (!member.kind) {
+              member.kind = 'real';
+            }
+          }
+          return;
+        }
+        let entry = state[member.id];
+        if (!entry) {
+          entry = createRandomizedVirtualEntry(member, now);
+          state[member.id] = entry;
+          changed = true;
+        } else if (entry.name !== member.name) {
+          entry.name = member.name;
+          changed = true;
+        }
+        entry.isWaiting = member.checkInState === 'pending' ? true : Boolean(entry.isWaiting);
+        const entryChanged = simulateVirtualMemberEntry(member, entry, now);
+        if (entryChanged) {
+          state[member.id] = entry;
+          changed = true;
+        }
+      });
+      Object.keys(state).forEach(function (id) {
+        const exists = circle.members.some(function (member) {
+          return member && member.id === id && member.isVirtual;
+        });
+        if (!exists) {
+          delete state[id];
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveVirtualMemberState(state);
+      }
+    }
+
+    function createRandomizedVirtualEntry(member, now) {
+      const statusOptions = ['fasting', 'planning', 'paused'];
+      const status = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+      let hours = 0;
+      if (status === 'fasting') {
+        hours = randomBetween(8, 20);
+      } else if (status === 'paused') {
+        hours = randomBetween(6, 16);
+      } else {
+        hours = randomBetween(0, 3);
+      }
+      const entry = {
+        id: member.id,
+        name: member.name,
+        status: status,
+        hours: hours,
+        lastHydrationMinutes: randomBetween(5, 110),
+        streak: randomBetween(1, 8),
+        responseMessage: pickVirtualMessage(status, member.name),
+        hydrationTarget: randomBetween(45, 120),
+        fastTarget: status === 'fasting' ? Math.max(hours + randomBetween(2, 6), hours + 1) : randomBetween(14, 22),
+        restTarget: randomBetween(3, 7),
+        planningTarget: randomBetween(1, 4),
+        restProgress: status === 'paused' ? Math.random() * 2 : 0,
+        planningProgress: status === 'planning' ? Math.random() : 0,
+        lastUpdated: now,
+        isWaiting: false
+      };
+      return entry;
+    }
+
+    function simulateVirtualMemberEntry(member, entry, now) {
+      let changed = false;
+      const lastUpdate = entry.lastUpdated || now;
+      const deltaMinutes = Math.floor((now - lastUpdate) / 60000);
+      const displayName = entry.name || member.name || 'Your friend';
+      if (deltaMinutes >= VIRTUAL_MEMBER_REFRESH_MINUTES && !entry.isWaiting) {
+        const minutesToApply = Math.min(deltaMinutes, 240);
+        entry.lastHydrationMinutes = Math.min(
+          VIRTUAL_MEMBER_MAX_HYDRATION_MINUTES,
+          (entry.lastHydrationMinutes || 0) + minutesToApply
+        );
+        const deltaHours = minutesToApply / 60;
+        if (entry.status === 'fasting') {
+          entry.hours = (entry.hours || 0) + deltaHours;
+          if (entry.hours >= entry.fastTarget) {
+            entry.status = 'paused';
+            entry.responseMessage = pickVirtualMessage('paused', displayName);
+            entry.restProgress = 0;
+            entry.restTarget = randomBetween(3, 7);
+            changed = true;
+          }
+        } else if (entry.status === 'paused') {
+          entry.restProgress = (entry.restProgress || 0) + deltaHours;
+          if (entry.restProgress >= entry.restTarget) {
+            entry.status = 'planning';
+            entry.responseMessage = pickVirtualMessage('planning', displayName);
+            entry.planningProgress = 0;
+            entry.planningTarget = randomBetween(1, 3);
+            entry.hours = 0;
+            changed = true;
+          }
+        } else {
+          entry.planningProgress = (entry.planningProgress || 0) + deltaHours;
+          if (entry.planningProgress >= entry.planningTarget) {
+            entry.status = 'fasting';
+            entry.responseMessage = pickVirtualMessage('fasting', displayName);
+            entry.hours = randomBetween(2, 5);
+            entry.fastTarget = entry.hours + randomBetween(10, 16);
+            entry.planningProgress = 0;
+            entry.restProgress = 0;
+            if (Math.random() < 0.4) {
+              entry.streak = Math.min((entry.streak || 0) + 1, 30);
+            }
+            changed = true;
+          }
+        }
+        if (entry.lastHydrationMinutes >= entry.hydrationTarget) {
+          entry.lastHydrationMinutes = randomBetween(0, 6);
+          entry.hydrationTarget = randomBetween(50, 130);
+          entry.responseMessage = pickVirtualMessage('hydrated', displayName);
+          changed = true;
+        }
+        entry.lastUpdated = lastUpdate + minutesToApply * 60000;
+      }
+      if (member.checkInState === 'pending') {
+        if (!entry.isWaiting) {
+          entry.isWaiting = true;
+          entry.lastUpdated = now;
+          changed = true;
+        }
+      } else if (entry.isWaiting) {
+        entry.isWaiting = false;
+        changed = true;
+      }
+      entry.hours = Math.max(0, entry.hours || 0);
+      entry.lastHydrationMinutes = Math.max(0, Math.min(entry.lastHydrationMinutes || 0, VIRTUAL_MEMBER_MAX_HYDRATION_MINUTES));
+      const memberChanged = applyVirtualEntryToMember(member, entry);
+      return changed || memberChanged;
+    }
+
+    function applyVirtualEntryToMember(member, entry) {
+      let changed = false;
+      if (member.status !== entry.status) {
+        member.status = entry.status;
+        changed = true;
+      }
+      const roundedHours = Math.max(0, Math.round(entry.hours || 0));
+      if (member.hours !== roundedHours) {
+        member.hours = roundedHours;
+        changed = true;
+      }
+      const hydrationMinutes = Math.max(0, Math.round(entry.lastHydrationMinutes || 0));
+      if (member.lastHydrationMinutes !== hydrationMinutes) {
+        member.lastHydrationMinutes = hydrationMinutes;
+        changed = true;
+      }
+      const streak = Math.max(0, Math.round(entry.streak || 0));
+      if (member.streak !== streak) {
+        member.streak = streak;
+        changed = true;
+      }
+      if (member.checkInState !== 'pending') {
+        if (member.responseMessage !== entry.responseMessage) {
+          member.responseMessage = entry.responseMessage;
+          changed = true;
+        }
+        member.checkInState = member.checkInState || 'idle';
+      }
+      member.isVirtual = true;
+      member.kind = 'virtual';
+      return changed;
+    }
+
+    function pickVirtualMessage(type, name) {
+      const pools = VIRTUAL_MEMBER_MESSAGES || {};
+      const target = Array.isArray(pools[type]) ? pools[type] : [];
+      const fallback = Array.isArray(pools.fasting) ? pools.fasting : [];
+      const options = target.length ? target : fallback;
+      if (!options.length) {
+        return (name || 'Your friend') + ' is staying motivated.';
+      }
+      const choice = options[Math.floor(Math.random() * options.length)];
+      try {
+        return choice(name || 'Your friend');
+      } catch (err) {
+        return (name || 'Your friend') + ' is staying motivated.';
+      }
+    }
+
+    function loadVirtualMemberState() {
+      if (!supportsLocalStorage()) {
+        return {};
+      }
+      try {
+        const raw = localStorage.getItem(VIRTUAL_MEMBER_STATE_KEY);
+        if (!raw) {
+          return {};
+        }
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (err) {
+        return {};
+      }
+    }
+
+    function saveVirtualMemberState(state) {
+      if (!supportsLocalStorage()) {
+        return;
+      }
+      try {
+        localStorage.setItem(VIRTUAL_MEMBER_STATE_KEY, JSON.stringify(state));
+      } catch (err) {
+        // ignore quota limits silently
+      }
+    }
+
+    function updateVirtualMemberStateFromCircle(circle) {
+      if (!supportsLocalStorage() || !circle || !Array.isArray(circle.members)) {
+        return;
+      }
+      const state = loadVirtualMemberState();
+      let changed = false;
+      circle.members.forEach(function (member) {
+        if (!member || !member.isVirtual) {
+          return;
+        }
+        const entry = state[member.id];
+        if (!entry) {
+          return;
+        }
+        let entryChanged = false;
+        if (entry.name !== member.name) {
+          entry.name = member.name;
+          entryChanged = true;
+        }
+        if (member.status && entry.status !== member.status) {
+          entry.status = member.status;
+          entryChanged = true;
+        }
+        if (typeof member.hours === 'number' && !isNaN(member.hours) && entry.hours !== member.hours) {
+          entry.hours = member.hours;
+          entryChanged = true;
+        }
+        if (typeof member.lastHydrationMinutes === 'number' && entry.lastHydrationMinutes !== member.lastHydrationMinutes) {
+          entry.lastHydrationMinutes = member.lastHydrationMinutes;
+          entryChanged = true;
+        }
+        if (typeof member.streak === 'number' && entry.streak !== member.streak) {
+          entry.streak = member.streak;
+          entryChanged = true;
+        }
+        if (member.responseMessage && member.checkInState !== 'pending' && entry.responseMessage !== member.responseMessage) {
+          entry.responseMessage = member.responseMessage;
+          entryChanged = true;
+        }
+        const waiting = member.checkInState === 'pending';
+        if (entry.isWaiting !== waiting) {
+          entry.isWaiting = waiting;
+          entryChanged = true;
+        }
+        if (entryChanged) {
+          entry.lastUpdated = Date.now();
+          state[member.id] = entry;
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveVirtualMemberState(state);
+      }
     }
 
     function normalizeConnection(connection, index) {
@@ -2268,6 +2668,7 @@
     function mutateCircle(mutator) {
       const circle = ensureCircleState();
       const result = mutator(circle) || {};
+      updateVirtualMemberStateFromCircle(circle);
       normalizeCircle(circle);
       circleState = circle;
       saveCircle(circle);
@@ -2311,6 +2712,13 @@
         pill.className = statusClass.trim();
         pill.textContent = buildStatusLabel(member);
         name.appendChild(nameText);
+        if (member.isVirtual) {
+          const virtualTag = document.createElement('span');
+          virtualTag.className = 'member-tag virtual';
+          virtualTag.textContent = 'Motivation';
+          virtualTag.title = member.name + ' is a motivational friend simulated to keep momentum high.';
+          name.appendChild(virtualTag);
+        }
         name.appendChild(pill);
         const note = document.createElement('div');
         note.className = 'member-note';
@@ -2481,7 +2889,11 @@
     function describeMember(member) {
       const hydration = formatMemberHydration(member.lastHydrationMinutes);
       const streak = formatStreak(member.streak);
-      return hydration + ' • ' + streak;
+      const details = [hydration, streak];
+      if (member && member.isVirtual) {
+        details.push('Motivation friend');
+      }
+      return details.join(' • ');
     }
 
     function formatMemberHydration(minutes) {
@@ -2596,7 +3008,9 @@
         });
       });
       others.forEach(function (member) {
-        scheduleSimulatedResponse(member.id);
+        if (member.isVirtual) {
+          scheduleSimulatedResponse(member.id);
+        }
       });
       showToast('Circle pulse sent!');
     }
@@ -2639,12 +3053,16 @@
         member.responseMessage = 'Waiting for reply…';
         member.lastCheckAt = Date.now();
         addCircleActivity(circle, 'You asked ' + member.name + ' for a fasting pulse check.');
-        return { toast: 'Pulse check sent to ' + member.name + '!', memberName: member.name };
+        return {
+          toast: 'Pulse check sent to ' + member.name + '!',
+          memberName: member.name,
+          memberVirtual: Boolean(member.isVirtual)
+        };
       });
       if (outcome && outcome.toast) {
         showToast(outcome.toast);
       }
-      if (outcome && outcome.memberName) {
+      if (outcome && outcome.memberVirtual) {
         scheduleSimulatedResponse(memberId);
       }
     }
@@ -2653,13 +3071,20 @@
       if (circleResponseTimers[memberId]) {
         clearTimeout(circleResponseTimers[memberId]);
       }
+      const circle = ensureCircleState();
+      const target = circle.members.find(function (item) {
+        return item.id === memberId;
+      });
+      if (!target || !target.isVirtual) {
+        return;
+      }
       const delay = randomBetween(CIRCLE_RESPONSE_DELAY.min, CIRCLE_RESPONSE_DELAY.max);
       circleResponseTimers[memberId] = setTimeout(function () {
         const response = mutateCircle(function (circle) {
           const member = circle.members.find(function (item) {
             return item.id === memberId;
           });
-          if (!member || member.checkInState !== 'pending') {
+          if (!member || !member.isVirtual || member.checkInState !== 'pending') {
             return { toast: null };
           }
           const outcome = pickCircleResponse(member);
