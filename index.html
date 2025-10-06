@@ -1152,9 +1152,11 @@
     let isLoading = false;
     let refreshTimer = null;
     let circleState = null;
+    let deviceSessionId = null;
 
     const circleResponseTimers = {};
     const circleConnectionTimers = {};
+    const LOCAL_SESSION_KEY = 'hydrafast:sessionId:v1';
     const LOCAL_PROFILE_KEY = 'hydrafast:deviceProfile:v2';
     const LOCAL_CIRCLE_KEY = 'hydrafast:circle:v1';
     const DEFAULT_REMINDER_MINUTES = 120;
@@ -1461,7 +1463,7 @@
           showToast('Unable to refresh status. Please try again.');
           console.error(err);
         })
-        .getStatus();
+        .getStatus(ensureDeviceSession());
     }
 
     function handleStart() {
@@ -1499,7 +1501,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .startFast(timestamp);
+        .startFast(ensureDeviceSession(), timestamp);
     }
 
     function handleStop() {
@@ -1523,7 +1525,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .stopFast();
+        .stopFast(ensureDeviceSession());
     }
 
     function handleDrink() {
@@ -1547,7 +1549,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .recordHydration();
+        .recordHydration(ensureDeviceSession());
     }
 
     function handleReminderChange(value) {
@@ -1568,7 +1570,7 @@
           showToast('Unable to update reminders.');
           console.error(err);
         })
-        .setReminderInterval(value);
+        .setReminderInterval(ensureDeviceSession(), value);
     }
 
     function handleSaveStartTime() {
@@ -1606,7 +1608,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .setFastStart(timestamp);
+        .setFastStart(ensureDeviceSession(), timestamp);
     }
 
     function renderStatus(status) {
@@ -3072,6 +3074,40 @@
           }
         });
       }
+    }
+
+    function ensureDeviceSession() {
+      if (deviceSessionId) {
+        return deviceSessionId;
+      }
+      let stored = null;
+      if (supportsLocalStorage()) {
+        try {
+          stored = localStorage.getItem(LOCAL_SESSION_KEY);
+        } catch (err) {
+          stored = null;
+        }
+      }
+      if (!stored) {
+        stored = generateSessionId();
+        if (supportsLocalStorage()) {
+          try {
+            localStorage.setItem(LOCAL_SESSION_KEY, stored);
+          } catch (err) {
+            // Ignore storage write failures.
+          }
+        }
+      }
+      deviceSessionId = stored;
+      return deviceSessionId;
+    }
+
+    function generateSessionId() {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      const random = Math.random().toString(16).slice(2);
+      return 'sess-' + Date.now().toString(36) + '-' + random;
     }
 
     function saveLocalProfile(profile) {
