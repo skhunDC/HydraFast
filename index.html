@@ -46,6 +46,10 @@
 
     header {
       padding: 24px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
     }
 
     h1 {
@@ -83,6 +87,11 @@
 
       header {
         padding: 28px 18px 20px;
+      }
+
+      .auth-card {
+        width: min(360px, 96vw);
+        padding: 24px 20px;
       }
 
       h1 {
@@ -258,6 +267,167 @@
 
     .is-hidden {
       display: none !important;
+    }
+
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 37, 64, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 2000;
+      backdrop-filter: blur(6px);
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border-radius: 22px;
+      padding: 28px 24px;
+      width: min(420px, 92vw);
+      box-shadow: 0 28px 60px rgba(15, 94, 156, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .auth-card h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      color: var(--primary-dark);
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(0, 180, 216, 0.08);
+      padding: 6px;
+      border-radius: 16px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--primary-dark);
+      font-weight: 600;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .auth-tab.is-active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 12px 24px rgba(0, 180, 216, 0.25);
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .auth-form label {
+      font-weight: 600;
+      color: var(--primary-dark);
+      font-size: 0.95rem;
+    }
+
+    .auth-form input {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 119, 182, 0.25);
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .auth-form button[type="submit"] {
+      margin-top: 6px;
+    }
+
+    .auth-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .auth-link {
+      background: none;
+      border: none;
+      color: var(--primary-dark);
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .auth-link:hover {
+      text-decoration: underline;
+    }
+
+    .auth-feedback {
+      min-height: 22px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .auth-feedback.error {
+      color: var(--accent);
+    }
+
+    .auth-feedback.success {
+      color: var(--success);
+    }
+
+    .auth-overlay .btn-primary,
+    .auth-overlay .btn-secondary {
+      width: 100%;
+    }
+
+    .account-chip {
+      align-self: flex-end;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 999px;
+      box-shadow: 0 18px 40px rgba(0, 119, 182, 0.2);
+      font-size: 0.9rem;
+      color: var(--primary-dark);
+    }
+
+    .account-chip span {
+      font-weight: 600;
+    }
+
+    .account-chip__actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .account-chip button {
+      border: none;
+      background: none;
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .account-chip button:hover {
+      background: rgba(255, 123, 84, 0.14);
+    }
+
+    .account-chip button:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
 
     .feature-card {
@@ -998,7 +1168,55 @@
   </style>
 </head>
 <body>
+  <div id="authOverlay" class="auth-overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-card">
+      <h2 id="authTitle">Welcome back</h2>
+      <p class="helper-text">HydraFast remembers your hydration reminders once you sign in on this device.</p>
+      <div class="auth-tabs" role="tablist">
+        <button type="button" class="auth-tab is-active" data-mode="login" aria-selected="true">Sign In</button>
+        <button type="button" class="auth-tab" data-mode="register" aria-selected="false">Create Account</button>
+      </div>
+      <form id="loginForm" class="auth-form" autocomplete="off">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" name="loginEmail" type="email" required placeholder="you@example.com" autocomplete="email">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" name="loginPassword" type="password" required placeholder="Password" autocomplete="current-password">
+        <button class="btn-primary" type="submit">Sign In</button>
+      </form>
+      <form id="registerForm" class="auth-form is-hidden" autocomplete="off">
+        <label for="registerEmail">Email</label>
+        <input id="registerEmail" type="email" required placeholder="you@example.com" autocomplete="email">
+        <label for="registerPassword">Password</label>
+        <input id="registerPassword" type="password" required placeholder="Minimum 8 characters" autocomplete="new-password">
+        <label for="registerConfirm">Confirm password</label>
+        <input id="registerConfirm" type="password" required placeholder="Repeat password" autocomplete="new-password">
+        <button class="btn-primary" type="submit">Create Account</button>
+      </form>
+      <form id="resetForm" class="auth-form is-hidden" autocomplete="off">
+        <label for="resetEmail">Email</label>
+        <input id="resetEmail" type="email" required placeholder="you@example.com" autocomplete="email">
+        <button type="button" class="btn-secondary" id="sendResetCodeButton">Email reset code</button>
+        <label for="resetToken">Reset code</label>
+        <input id="resetToken" type="text" placeholder="Enter your reset code" autocomplete="one-time-code" required>
+        <label for="resetPassword">New password</label>
+        <input id="resetPassword" type="password" placeholder="New password" autocomplete="new-password" required>
+        <button class="btn-primary" type="submit">Update Password</button>
+      </form>
+      <div class="auth-actions">
+        <button type="button" class="auth-link" id="authForgotButton">Forgot password?</button>
+        <button type="button" class="auth-link is-hidden" id="authBackToLogin">Back to sign in</button>
+      </div>
+      <div id="authFeedback" class="auth-feedback" role="status" aria-live="polite"></div>
+    </div>
+  </div>
   <header>
+    <div class="account-chip is-hidden" id="accountChip">
+      <span id="accountEmailDisplay">Sign in to sync progress</span>
+      <div class="account-chip__actions">
+        <button type="button" id="accountResetButton">Reset password</button>
+        <button type="button" id="signOutButton">Sign out</button>
+      </div>
+    </div>
     <h1>HydraFast</h1>
     <p class="status-banner" id="statusBanner">Loading your fasting status…</p>
   </header>
@@ -1169,6 +1387,10 @@
     let refreshTimer = null;
     let circleState = null;
     let deviceSessionId = null;
+    let authState = null;
+    let authMode = 'login';
+    let authOverlay = null;
+    let authInitialized = false;
 
     const circleResponseTimers = {};
     const circleConnectionTimers = {};
@@ -1177,6 +1399,7 @@
     const LOCAL_CIRCLE_KEY = 'hydrafast:circle:v1';
     const LOCAL_SHARE_CODE_KEY = 'hydrafast:circle:share:v1';
     const VIRTUAL_MEMBER_STATE_KEY = 'hydrafast:circle:virtual-state:v1';
+    const LOCAL_AUTH_KEY = 'hydrafast:auth:v1';
     const VIRTUAL_MEMBER_MAX_HYDRATION_MINUTES = 360;
     const VIRTUAL_MEMBER_REFRESH_MINUTES = 5;
     const DEFAULT_REMINDER_MINUTES = 120;
@@ -1455,6 +1678,588 @@
       }
     ];
 
+    function initializeAuth() {
+      authOverlay = document.getElementById('authOverlay');
+      setupAuthEventHandlers();
+      ensureDeviceSession();
+      if (hasAppsScript()) {
+        setButtonsDisabled(true);
+      } else {
+        setButtonsDisabled(false);
+      }
+      updateAccountBadge();
+      if (!hasAppsScript()) {
+        hideAuthOverlay();
+        setButtonsDisabled(true);
+        return Promise.resolve();
+      }
+      const stored = loadAuthState();
+      if (!stored || !stored.email || !stored.token) {
+        showAuthOverlay('login');
+        updateStatusBannerAuthRequired();
+        setButtonsDisabled(true);
+        return Promise.resolve();
+      }
+      setAuthMode('login');
+      showAuthOverlay('login');
+      updateAuthFeedback('Checking your session…');
+      return new Promise(function (resolve) {
+        google.script.run
+          .withSuccessHandler(function (response) {
+            if (response && response.success && response.token) {
+              handleAuthSuccess(response);
+              hideAuthOverlay();
+            } else {
+              clearAuthState();
+              showAuthOverlay('login');
+              updateAuthFeedback('Session expired. Please sign in again.', 'error');
+              updateStatusBannerAuthRequired();
+              setButtonsDisabled(true);
+            }
+            resolve();
+          })
+          .withFailureHandler(function () {
+            clearAuthState();
+            showAuthOverlay('login');
+            updateAuthFeedback('Please sign in to continue.', 'error');
+            updateStatusBannerAuthRequired();
+            setButtonsDisabled(true);
+            resolve();
+          })
+          .resumeSession({
+            email: stored.email,
+            token: stored.token,
+            deviceId: ensureDeviceSession()
+          });
+      });
+    }
+
+    function setupAuthEventHandlers() {
+      if (authInitialized) {
+        return;
+      }
+      authInitialized = true;
+      const loginForm = document.getElementById('loginForm');
+      if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginSubmit);
+      }
+      const registerForm = document.getElementById('registerForm');
+      if (registerForm) {
+        registerForm.addEventListener('submit', handleRegisterSubmit);
+      }
+      const resetForm = document.getElementById('resetForm');
+      if (resetForm) {
+        resetForm.addEventListener('submit', handleResetSubmit);
+      }
+      const tabs = document.querySelectorAll('.auth-tab');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          setAuthMode(tab.dataset.mode);
+          showAuthOverlay(tab.dataset.mode);
+        });
+      });
+      const forgotButton = document.getElementById('authForgotButton');
+      if (forgotButton) {
+        forgotButton.addEventListener('click', function () {
+          setAuthMode('reset');
+          const resetEmail = document.getElementById('resetEmail');
+          if (resetEmail && authState && authState.email) {
+            resetEmail.value = authState.email;
+          }
+          showAuthOverlay('reset');
+        });
+      }
+      const backButton = document.getElementById('authBackToLogin');
+      if (backButton) {
+        backButton.addEventListener('click', function () {
+          setAuthMode('login');
+          showAuthOverlay('login');
+        });
+      }
+      const sendResetCodeButton = document.getElementById('sendResetCodeButton');
+      if (sendResetCodeButton) {
+        sendResetCodeButton.addEventListener('click', handleSendResetCode);
+      }
+      const accountResetButton = document.getElementById('accountResetButton');
+      if (accountResetButton) {
+        accountResetButton.addEventListener('click', function () {
+          if (authState && authState.email) {
+            const resetEmail = document.getElementById('resetEmail');
+            if (resetEmail) {
+              resetEmail.value = authState.email;
+            }
+          }
+          setAuthMode('reset');
+          showAuthOverlay('reset');
+        });
+      }
+      const signOutButton = document.getElementById('signOutButton');
+      if (signOutButton) {
+        signOutButton.addEventListener('click', handleSignOut);
+      }
+    }
+
+    function setAuthMode(mode) {
+      if (!mode) {
+        mode = 'login';
+      }
+      authMode = mode;
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const resetForm = document.getElementById('resetForm');
+      if (loginForm) {
+        loginForm.classList.toggle('is-hidden', mode !== 'login');
+      }
+      if (registerForm) {
+        registerForm.classList.toggle('is-hidden', mode !== 'register');
+      }
+      if (resetForm) {
+        resetForm.classList.toggle('is-hidden', mode !== 'reset');
+      }
+      const tabs = document.querySelectorAll('.auth-tab');
+      tabs.forEach(function (tab) {
+        const isActive = mode !== 'reset' && tab.dataset.mode === mode;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      const forgotButton = document.getElementById('authForgotButton');
+      if (forgotButton) {
+        forgotButton.classList.toggle('is-hidden', mode === 'reset');
+      }
+      const backButton = document.getElementById('authBackToLogin');
+      if (backButton) {
+        backButton.classList.toggle('is-hidden', mode !== 'reset');
+      }
+      const authTitle = document.getElementById('authTitle');
+      if (authTitle) {
+        if (mode === 'register') {
+          authTitle.textContent = 'Create your account';
+        } else if (mode === 'reset') {
+          authTitle.textContent = 'Reset your password';
+        } else {
+          authTitle.textContent = 'Welcome back';
+        }
+      }
+      updateAuthFeedback('');
+    }
+
+    function showAuthOverlay(mode, message) {
+      const overlay = document.getElementById('authOverlay');
+      if (!overlay) {
+        return;
+      }
+      if (mode) {
+        setAuthMode(mode);
+      }
+      overlay.classList.remove('is-hidden');
+      overlay.setAttribute('aria-hidden', 'false');
+      if (message) {
+        updateAuthFeedback(message);
+      } else {
+        updateAuthFeedback('');
+      }
+      const focusField = authMode === 'register' ? 'registerEmail' : authMode === 'reset' ? 'resetEmail' : 'loginEmail';
+      setTimeout(function () {
+        const input = document.getElementById(focusField);
+        if (input) {
+          input.focus();
+        }
+      }, 120);
+    }
+
+    function hideAuthOverlay() {
+      const overlay = document.getElementById('authOverlay');
+      if (!overlay) {
+        return;
+      }
+      overlay.classList.add('is-hidden');
+      overlay.setAttribute('aria-hidden', 'true');
+      updateAuthFeedback('');
+    }
+
+    function updateAuthFeedback(message, tone) {
+      const feedback = document.getElementById('authFeedback');
+      if (!feedback) {
+        return;
+      }
+      feedback.textContent = message || '';
+      feedback.classList.remove('error', 'success');
+      if (tone === 'error') {
+        feedback.classList.add('error');
+      } else if (tone === 'success') {
+        feedback.classList.add('success');
+      }
+    }
+
+    function toggleAuthFormDisabled(form, disabled) {
+      if (!form) {
+        return;
+      }
+      const fields = form.querySelectorAll('input, button');
+      fields.forEach(function (field) {
+        field.disabled = disabled;
+      });
+    }
+
+    function saveAuthState(state) {
+      if (!supportsLocalStorage()) {
+        return;
+      }
+      try {
+        localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify({
+          email: state && state.email ? state.email : '',
+          token: state && state.token ? state.token : ''
+        }));
+      } catch (err) {
+        // ignore storage errors
+      }
+    }
+
+    function loadAuthState() {
+      if (!supportsLocalStorage()) {
+        return null;
+      }
+      try {
+        const raw = localStorage.getItem(LOCAL_AUTH_KEY);
+        if (!raw) {
+          return null;
+        }
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') {
+          return null;
+        }
+        return parsed;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function clearAuthState() {
+      if (supportsLocalStorage()) {
+        try {
+          localStorage.removeItem(LOCAL_AUTH_KEY);
+        } catch (err) {
+          // ignore
+        }
+      }
+      authState = null;
+    }
+
+    function isAuthenticated() {
+      return !!(authState && authState.email && authState.token);
+    }
+
+    function buildSessionPayload() {
+      if (!isAuthenticated()) {
+        throw new Error('Not authenticated');
+      }
+      const deviceId = ensureDeviceSession();
+      if (authState) {
+        authState.deviceId = deviceId;
+      }
+      return {
+        email: authState.email,
+        token: authState.token,
+        deviceId: deviceId
+      };
+    }
+
+    function handleAuthSuccess(response) {
+      const emailValue = response && response.email ? String(response.email).trim() : response && response.normalizedEmail ? String(response.normalizedEmail).trim() : '';
+      authState = {
+        email: emailValue,
+        token: response.token,
+        deviceId: ensureDeviceSession()
+      };
+      saveAuthState(authState);
+      updateAccountBadge();
+      setButtonsDisabled(false);
+    }
+
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      if (!hasAppsScript()) {
+        updateAuthFeedback('Online access is required to sign in.', 'error');
+        return;
+      }
+      const form = event.target;
+      const emailInput = document.getElementById('loginEmail');
+      const passwordInput = document.getElementById('loginPassword');
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value : '';
+      if (!email || !password) {
+        updateAuthFeedback('Enter your email and password.', 'error');
+        return;
+      }
+      toggleAuthFormDisabled(form, true);
+      updateAuthFeedback('Signing you in…');
+      google.script.run
+        .withSuccessHandler(function (response) {
+          toggleAuthFormDisabled(form, false);
+          if (response && response.success && response.token) {
+            handleAuthSuccess(response);
+            updateAuthFeedback('Signed in successfully.', 'success');
+            hideAuthOverlay();
+            restartRefreshTimer();
+            showToast('Signed in! Hydrate intentionally.');
+          } else {
+            updateAuthFeedback('Invalid email or password.', 'error');
+          }
+        })
+        .withFailureHandler(function (err) {
+          toggleAuthFormDisabled(form, false);
+          const message = err && err.message ? err.message : 'Unable to sign in right now.';
+          updateAuthFeedback(message, 'error');
+        })
+        .loginUser({
+          email: email,
+          password: password,
+          deviceId: ensureDeviceSession()
+        });
+    }
+
+    function handleRegisterSubmit(event) {
+      event.preventDefault();
+      if (!hasAppsScript()) {
+        updateAuthFeedback('Online access is required to create an account.', 'error');
+        return;
+      }
+      const form = event.target;
+      const emailInput = document.getElementById('registerEmail');
+      const passwordInput = document.getElementById('registerPassword');
+      const confirmInput = document.getElementById('registerConfirm');
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value : '';
+      const confirm = confirmInput ? confirmInput.value : '';
+      if (!email || !password) {
+        updateAuthFeedback('Enter your email and password.', 'error');
+        return;
+      }
+      if (password !== confirm) {
+        updateAuthFeedback('Passwords do not match.', 'error');
+        return;
+      }
+      if (password.length < 8) {
+        updateAuthFeedback('Password must be at least 8 characters.', 'error');
+        return;
+      }
+      toggleAuthFormDisabled(form, true);
+      updateAuthFeedback('Creating your account…');
+      google.script.run
+        .withSuccessHandler(function (response) {
+          if (!response || !response.success) {
+            toggleAuthFormDisabled(form, false);
+            updateAuthFeedback('Unable to create account. Please try again.', 'error');
+            return;
+          }
+          updateAuthFeedback('Account created! Signing you in…', 'success');
+          google.script.run
+            .withSuccessHandler(function (loginResponse) {
+              toggleAuthFormDisabled(form, false);
+              if (loginResponse && loginResponse.success && loginResponse.token) {
+                const loginEmailInput = document.getElementById('loginEmail');
+                if (loginEmailInput) {
+                  loginEmailInput.value = email;
+                }
+                handleAuthSuccess(loginResponse);
+                hideAuthOverlay();
+                restartRefreshTimer();
+                showToast('Account ready! Welcome to HydraFast.');
+              } else {
+                updateAuthFeedback('Account created. Please sign in.', 'success');
+                setAuthMode('login');
+              }
+            })
+            .withFailureHandler(function () {
+              toggleAuthFormDisabled(form, false);
+              updateAuthFeedback('Account created. Please sign in.', 'success');
+              setAuthMode('login');
+            })
+            .loginUser({
+              email: email,
+              password: password,
+              deviceId: ensureDeviceSession()
+            });
+        })
+        .withFailureHandler(function (err) {
+          toggleAuthFormDisabled(form, false);
+          const message = err && err.message ? err.message : 'Unable to create account.';
+          updateAuthFeedback(message, 'error');
+        })
+        .registerUser({
+          email: email,
+          password: password
+        });
+    }
+
+    function handleResetSubmit(event) {
+      event.preventDefault();
+      if (!hasAppsScript()) {
+        updateAuthFeedback('Online access is required to reset your password.', 'error');
+        return;
+      }
+      const form = event.target;
+      const emailInput = document.getElementById('resetEmail');
+      const tokenInput = document.getElementById('resetToken');
+      const passwordInput = document.getElementById('resetPassword');
+      const email = emailInput ? emailInput.value.trim() : '';
+      const token = tokenInput ? tokenInput.value.trim() : '';
+      const newPassword = passwordInput ? passwordInput.value : '';
+      if (!email || !token || !newPassword) {
+        updateAuthFeedback('Enter your email, reset code, and new password.', 'error');
+        return;
+      }
+      if (newPassword.length < 8) {
+        updateAuthFeedback('Password must be at least 8 characters.', 'error');
+        return;
+      }
+      toggleAuthFormDisabled(form, true);
+      updateAuthFeedback('Updating password…');
+      google.script.run
+        .withSuccessHandler(function (response) {
+          toggleAuthFormDisabled(form, false);
+          if (response && response.success) {
+            updateAuthFeedback('Password updated! Please sign in.', 'success');
+            setAuthMode('login');
+            const loginEmailInput = document.getElementById('loginEmail');
+            if (loginEmailInput) {
+              loginEmailInput.value = email;
+            }
+          } else {
+            updateAuthFeedback('Unable to update password. Check your reset code.', 'error');
+          }
+        })
+        .withFailureHandler(function (err) {
+          toggleAuthFormDisabled(form, false);
+          const message = err && err.message ? err.message : 'Unable to update password.';
+          updateAuthFeedback(message, 'error');
+        })
+        .completePasswordReset({
+          email: email,
+          token: token,
+          newPassword: newPassword
+        });
+    }
+
+    function handleSendResetCode() {
+      if (!hasAppsScript()) {
+        updateAuthFeedback('Online access is required to send a reset code.', 'error');
+        return;
+      }
+      const emailInput = document.getElementById('resetEmail');
+      const email = emailInput ? emailInput.value.trim() : '';
+      if (!email) {
+        updateAuthFeedback('Enter the email for your account.', 'error');
+        return;
+      }
+      updateAuthFeedback('Sending reset code…');
+      google.script.run
+        .withSuccessHandler(function () {
+          updateAuthFeedback('Check your email for the reset code.', 'success');
+        })
+        .withFailureHandler(function (err) {
+          const message = err && err.message ? err.message : 'Unable to send reset code right now.';
+          updateAuthFeedback(message, 'error');
+        })
+        .initiatePasswordReset({
+          email: email
+        });
+    }
+
+    function handleSignOut() {
+      if (!isAuthenticated()) {
+        return;
+      }
+      const finalize = function () {
+        clearAuthState();
+        authState = null;
+        updateAccountBadge();
+        stopRefreshTimer();
+        setButtonsDisabled(true);
+        updateStatusBannerAuthRequired();
+        showAuthOverlay('login');
+        currentStatus = null;
+        previousStatus = null;
+      };
+      if (hasAppsScript()) {
+        let payload;
+        try {
+          payload = buildSessionPayload();
+        } catch (err) {
+          finalize();
+          return;
+        }
+        google.script.run
+          .withSuccessHandler(function () {
+            finalize();
+          })
+          .withFailureHandler(function () {
+            finalize();
+          })
+          .logoutUser(payload);
+      } else {
+        finalize();
+      }
+    }
+
+    function updateAccountBadge() {
+      const chip = document.getElementById('accountChip');
+      const emailDisplay = document.getElementById('accountEmailDisplay');
+      const resetButton = document.getElementById('accountResetButton');
+      const signOutButton = document.getElementById('signOutButton');
+      if (!chip) {
+        return;
+      }
+      if (isAuthenticated()) {
+        chip.classList.remove('is-hidden');
+        if (emailDisplay) {
+          emailDisplay.textContent = authState.email;
+        }
+        if (resetButton) {
+          resetButton.classList.remove('is-hidden');
+          resetButton.disabled = false;
+        }
+        if (signOutButton) {
+          signOutButton.classList.remove('is-hidden');
+          signOutButton.disabled = false;
+        }
+      } else {
+        if (emailDisplay) {
+          emailDisplay.textContent = 'Sign in to sync progress';
+        }
+        if (resetButton) {
+          resetButton.classList.add('is-hidden');
+        }
+        if (signOutButton) {
+          signOutButton.classList.add('is-hidden');
+        }
+        chip.classList.add('is-hidden');
+      }
+    }
+
+    function updateStatusBannerAuthRequired() {
+      const banner = document.getElementById('statusBanner');
+      if (banner) {
+        banner.textContent = 'Sign in to start tracking your fast and hydration reminders on this device.';
+      }
+    }
+
+    function stopRefreshTimer() {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+      }
+    }
+
+    function restartRefreshTimer() {
+      stopRefreshTimer();
+      if (!hasAppsScript() || !isAuthenticated()) {
+        return;
+      }
+      refreshStatus();
+      refreshTimer = setInterval(refreshStatus, 60000);
+    }
+
     function applyRenderedStatus(status) {
       if (!status) {
         return;
@@ -1467,12 +2272,19 @@
     document.addEventListener('DOMContentLoaded', function () {
       initializeMilestones();
       initializeCircle();
-      const localStatus = calculateLocalStatus();
-      if (localStatus) {
-        applyRenderedStatus(localStatus);
-      }
-      refreshStatus();
-      refreshTimer = setInterval(refreshStatus, 60000);
+      initializeAuth().then(function () {
+        const localStatus = calculateLocalStatus();
+        if (localStatus && (!hasAppsScript() || isAuthenticated())) {
+          applyRenderedStatus(localStatus);
+        }
+        if (hasAppsScript() && isAuthenticated()) {
+          restartRefreshTimer();
+        } else if (!hasAppsScript()) {
+          refreshStatus();
+        } else {
+          updateStatusBannerAuthRequired();
+        }
+      });
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('?resource=service-worker', { scope: './' }).catch(function () {
           // ignore failures silently
@@ -1484,20 +2296,34 @@
       if (isLoading) {
         return;
       }
-      isLoading = true;
       if (!hasAppsScript()) {
-        isLoading = false;
         const localStatus = calculateLocalStatus();
         if (localStatus) {
           applyRenderedStatus(localStatus);
         } else {
-          document.getElementById('statusBanner').textContent = 'HydraFast is ready on this device. Tap “Start Fast” to begin your journey.';
+          const banner = document.getElementById('statusBanner');
+          if (banner) {
+            banner.textContent = 'HydraFast is ready on this device. Tap “Start Fast” to begin your journey.';
+          }
         }
         return;
       }
+      if (!isAuthenticated()) {
+        updateStatusBannerAuthRequired();
+        return;
+      }
+      var payload;
+      try {
+        payload = buildSessionPayload();
+      } catch (err) {
+        updateStatusBannerAuthRequired();
+        return;
+      }
+      isLoading = true;
       google.script.run
         .withSuccessHandler(function (response) {
           isLoading = false;
+          setButtonsDisabled(false);
           applyRenderedStatus(response);
         })
         .withFailureHandler(function (err) {
@@ -1505,7 +2331,7 @@
           showToast('Unable to refresh status. Please try again.');
           console.error(err);
         })
-        .getStatus(ensureDeviceSession());
+        .getStatus(payload);
     }
 
     function handleStart() {
@@ -1531,6 +2357,18 @@
         showToast('Fast started on this device. Hydrate with intention!');
         return;
       }
+      if (!isAuthenticated()) {
+        showAuthOverlay('login');
+        showToast('Please sign in to start your fast.');
+        return;
+      }
+      let payload;
+      try {
+        payload = buildSessionPayload();
+      } catch (err) {
+        showAuthOverlay('login');
+        return;
+      }
       setButtonsDisabled(true);
       google.script.run
         .withSuccessHandler(function (response) {
@@ -1543,7 +2381,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .startFast(ensureDeviceSession(), timestamp);
+        .startFast(payload, timestamp);
     }
 
     function handleStop() {
@@ -1553,6 +2391,18 @@
           applyRenderedStatus(status);
         }
         showToast('Fast ended for this device. Great listening.');
+        return;
+      }
+      if (!isAuthenticated()) {
+        showAuthOverlay('login');
+        showToast('Please sign in to stop your fast.');
+        return;
+      }
+      let payload;
+      try {
+        payload = buildSessionPayload();
+      } catch (err) {
+        showAuthOverlay('login');
         return;
       }
       setButtonsDisabled(true);
@@ -1567,7 +2417,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .stopFast(ensureDeviceSession());
+        .stopFast(payload);
     }
 
     function handleDrink() {
@@ -1577,6 +2427,18 @@
           applyRenderedStatus(status);
         }
         showToast('Hydration logged. Keep the flow going!');
+        return;
+      }
+      if (!isAuthenticated()) {
+        showAuthOverlay('login');
+        showToast('Please sign in to log hydration.');
+        return;
+      }
+      let payload;
+      try {
+        payload = buildSessionPayload();
+      } catch (err) {
+        showAuthOverlay('login');
         return;
       }
       setButtonsDisabled(true);
@@ -1591,7 +2453,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .recordHydration(ensureDeviceSession());
+        .recordHydration(payload);
     }
 
     function handleReminderChange(value) {
@@ -1603,6 +2465,18 @@
         showToast('Hydration reminders updated for this device.');
         return;
       }
+      if (!isAuthenticated()) {
+        showAuthOverlay('login');
+        showToast('Please sign in to update reminders.');
+        return;
+      }
+      let payload;
+      try {
+        payload = buildSessionPayload();
+      } catch (err) {
+        showAuthOverlay('login');
+        return;
+      }
       google.script.run
         .withSuccessHandler(function (response) {
           applyRenderedStatus(response);
@@ -1612,7 +2486,7 @@
           showToast('Unable to update reminders.');
           console.error(err);
         })
-        .setReminderInterval(ensureDeviceSession(), value);
+        .setReminderInterval(payload, value);
     }
 
     function handleSaveStartTime() {
@@ -1638,6 +2512,18 @@
         showToast('Start time saved for this device.');
         return;
       }
+      if (!isAuthenticated()) {
+        showAuthOverlay('login');
+        showToast('Please sign in to save your start time.');
+        return;
+      }
+      let payload;
+      try {
+        payload = buildSessionPayload();
+      } catch (err) {
+        showAuthOverlay('login');
+        return;
+      }
       setButtonsDisabled(true);
       google.script.run
         .withSuccessHandler(function (response) {
@@ -1650,7 +2536,7 @@
           console.error(err);
           setButtonsDisabled(false);
         })
-        .setFastStart(ensureDeviceSession(), timestamp);
+        .setFastStart(payload, timestamp);
     }
 
     function renderStatus(status) {
@@ -1662,6 +2548,17 @@
       const phaseDescription = document.getElementById('phaseDescription');
       const statusBanner = document.getElementById('statusBanner');
       const reminderSelect = document.getElementById('reminderInterval');
+
+      if (status.accountEmail && (!authState || authState.email !== status.accountEmail)) {
+        if (!authState) {
+          authState = {};
+        }
+        authState.email = status.accountEmail;
+        if (authState.token) {
+          saveAuthState(authState);
+        }
+        updateAccountBadge();
+      }
 
       const endedFast = previousStatus && previousStatus.status === 'fasting' && status.status !== 'fasting';
       const completedHours = endedFast ? (previousStatus.elapsedHours || 0) : getLastCompletedFastHours();
@@ -1771,16 +2668,18 @@
     }
 
     function setButtonsDisabled(disabled) {
-      document.getElementById('startButton').disabled = disabled;
-      document.getElementById('stopButton').disabled = disabled;
-      document.getElementById('drinkButton').disabled = disabled;
+      const requireAuth = hasAppsScript();
+      const shouldDisable = disabled || (requireAuth && !isAuthenticated());
+      document.getElementById('startButton').disabled = shouldDisable;
+      document.getElementById('stopButton').disabled = shouldDisable;
+      document.getElementById('drinkButton').disabled = shouldDisable;
       const setStartButton = document.getElementById('setStartTimeButton');
       if (setStartButton) {
-        setStartButton.disabled = disabled;
+        setStartButton.disabled = shouldDisable;
       }
       const fastStartInput = document.getElementById('fastStartInput');
       if (fastStartInput) {
-        fastStartInput.disabled = disabled;
+        fastStartInput.disabled = shouldDisable;
       }
     }
 

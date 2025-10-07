@@ -8,6 +8,11 @@ var SESSION_INDEX_KEY = 'sessions:index';
 var SESSION_PREFIX = 'session:';
 var SESSION_ACTIVE_KEY = 'active';
 
+var AUTH_PROPERTY_KEY = 'auth:users';
+var PASSWORD_MIN_LENGTH = 8;
+var RESET_TOKEN_EXPIRATION_MINUTES = 30;
+var AUTH_REQUIRED_ERROR = 'Authentication required. Please sign in again.';
+
 var DEFAULT_REMINDER_MINUTES = 120;
 var MIN_REMINDER_MINUTES = 30;
 var PROGRESS_TARGET_HOURS = 168;
@@ -53,6 +58,369 @@ var SERVICE_WORKER_FALLBACK = [
   '});'
 ].join('\n');
 
+function registerUser(payload) {
+  var email = normalizeEmail(payload && payload.email);
+  var password = payload ? payload.password : null;
+  if (!email || !password) {
+    throw new Error('Email and password are required.');
+  }
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    throw new Error('Password must be at least ' + PASSWORD_MIN_LENGTH + ' characters.');
+  }
+  if (!isValidEmail(email)) {
+    throw new Error('Please provide a valid email address.');
+  }
+  var store = loadUserStore();
+  if (store.users[email]) {
+    throw new Error('An account with this email already exists.');
+  }
+  var salt = generateSalt();
+  var hash = hashPassword(password, salt);
+  store.users[email] = {
+    email: payload.email,
+    normalizedEmail: email,
+    salt: salt,
+    hash: hash,
+    createdAt: Date.now(),
+    devices: {}
+  };
+  saveUserStore(store);
+  return {
+    success: true
+  };
+}
+
+function loginUser(payload) {
+  var email = normalizeEmail(payload && payload.email);
+  var password = payload ? payload.password : null;
+  var deviceId = sanitizeDeviceId(payload && payload.deviceId);
+  if (!email || !password || !deviceId) {
+    throw new Error('Email, password, and device are required.');
+  }
+  var store = loadUserStore();
+  var user = store.users[email];
+  if (!user || !validatePassword(password, user)) {
+    throw new Error('Invalid email or password.');
+  }
+  var device = user.devices[deviceId] || {};
+  var token = generateToken();
+  var sessionKey = buildDeviceSessionKey(email, deviceId);
+  var now = Date.now();
+  device.token = token;
+  device.sessionKey = sessionKey;
+  device.lastLogin = now;
+  if (!device.createdAt) {
+    device.createdAt = now;
+  }
+  user.devices[deviceId] = device;
+  if (!store.sessionOwners) {
+    store.sessionOwners = {};
+  }
+  store.sessionOwners[sessionKey] = email;
+  saveUserStore(store);
+  return {
+    success: true,
+    email: user.email,
+    token: token,
+    deviceId: deviceId,
+    sessionId: sessionKey
+  };
+}
+
+function resumeSession(payload) {
+  var context = resolveAuthorizedSession(payload);
+  return {
+    success: true,
+    email: context.email,
+    token: context.token,
+    deviceId: context.deviceId,
+    sessionId: context.sessionId
+  };
+}
+
+function logoutUser(payload) {
+  var email = normalizeEmail(payload && payload.email);
+  var deviceId = sanitizeDeviceId(payload && payload.deviceId);
+  if (!email || !deviceId) {
+    return {
+      success: true
+    };
+  }
+  var store = loadUserStore();
+  var user = store.users[email];
+  if (user && user.devices && user.devices[deviceId]) {
+    var sessionKey = user.devices[deviceId].sessionKey;
+    delete user.devices[deviceId];
+    if (store.sessionOwners && sessionKey) {
+      delete store.sessionOwners[sessionKey];
+    }
+    saveUserStore(store);
+  }
+  return {
+    success: true
+  };
+}
+
+function initiatePasswordReset(payload) {
+  var email = normalizeEmail(payload && payload.email ? payload.email : payload);
+  if (!email) {
+    throw new Error('Email is required.');
+  }
+  var store = loadUserStore();
+  var user = store.users[email];
+  if (!user) {
+    return {
+      success: true
+    };
+  }
+  var token = generateToken();
+  var expiresAt = Date.now() + RESET_TOKEN_EXPIRATION_MINUTES * 60000;
+  user.reset = {
+    token: token,
+    expiresAt: expiresAt
+  };
+  saveUserStore(store);
+  try {
+    MailApp.sendEmail({
+      to: user.email,
+      subject: 'HydraFast Password Reset',
+      body: 'Use this code to reset your HydraFast password: ' + token + '\n\nThe code expires in ' + RESET_TOKEN_EXPIRATION_MINUTES + ' minutes.'
+    });
+  } catch (err) {
+    // Ignore send failures so request still succeeds.
+  }
+  return {
+    success: true
+  };
+}
+
+function completePasswordReset(payload) {
+  var email = normalizeEmail(payload && payload.email);
+  var token = payload ? payload.token : null;
+  var newPassword = payload ? payload.newPassword : null;
+  if (!email || !token || !newPassword) {
+    throw new Error('Email, reset code, and new password are required.');
+  }
+  if (newPassword.length < PASSWORD_MIN_LENGTH) {
+    throw new Error('Password must be at least ' + PASSWORD_MIN_LENGTH + ' characters.');
+  }
+  var store = loadUserStore();
+  var user = store.users[email];
+  if (!user || !user.reset || user.reset.token !== token) {
+    throw new Error('Invalid reset code.');
+  }
+  if (Date.now() > user.reset.expiresAt) {
+    delete user.reset;
+    saveUserStore(store);
+    throw new Error('Reset code has expired.');
+  }
+  var salt = generateSalt();
+  var hash = hashPassword(newPassword, salt);
+  user.salt = salt;
+  user.hash = hash;
+  user.devices = {};
+  delete user.reset;
+  saveUserStore(store);
+  return {
+    success: true
+  };
+}
+
+function resolveAuthorizedSession(sessionInput) {
+  if (!sessionInput || typeof sessionInput !== 'object') {
+    throw new Error(AUTH_REQUIRED_ERROR);
+  }
+  var email = normalizeEmail(sessionInput.email || sessionInput.userEmail);
+  var token = sessionInput.token || sessionInput.sessionToken;
+  var deviceId = sanitizeDeviceId(sessionInput.deviceId || sessionInput.sessionId || sessionInput.id);
+  if (!email || !token || !deviceId) {
+    throw new Error(AUTH_REQUIRED_ERROR);
+  }
+  var store = loadUserStore();
+  var user = store.users[email];
+  if (!user || !user.devices) {
+    throw new Error(AUTH_REQUIRED_ERROR);
+  }
+  var device = user.devices[deviceId];
+  if (!device || device.token !== token) {
+    throw new Error(AUTH_REQUIRED_ERROR);
+  }
+  if (!store.sessionOwners) {
+    store.sessionOwners = {};
+  }
+  var mutated = false;
+  if (!device.sessionKey) {
+    device.sessionKey = buildDeviceSessionKey(email, deviceId);
+    mutated = true;
+  }
+  if (store.sessionOwners[device.sessionKey] !== email) {
+    store.sessionOwners[device.sessionKey] = email;
+    mutated = true;
+  }
+  if (mutated) {
+    saveUserStore(store);
+  }
+  return {
+    email: user.email,
+    normalizedEmail: email,
+    token: device.token,
+    deviceId: deviceId,
+    sessionId: device.sessionKey
+  };
+}
+
+function normalizeEmail(email) {
+  if (!email && email !== '') {
+    return null;
+  }
+  var str = String(email).trim();
+  if (!str) {
+    return null;
+  }
+  return str.toLowerCase();
+}
+
+function sanitizeDeviceId(deviceId) {
+  if (!deviceId && deviceId !== '') {
+    return null;
+  }
+  var str = String(deviceId);
+  if (!str) {
+    return null;
+  }
+  return str.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 100);
+}
+
+function generateSalt() {
+  return Utilities.getUuid().replace(/-/g, '');
+}
+
+function generateToken() {
+  return Utilities.getUuid().replace(/-/g, '');
+}
+
+function hashPassword(password, salt) {
+  var digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + '|' + password);
+  return bytesToHex(digest);
+}
+
+function validatePassword(password, user) {
+  if (!user || !user.salt || !user.hash) {
+    return false;
+  }
+  var computed = hashPassword(password, user.salt);
+  return computed === user.hash;
+}
+
+function bytesToHex(bytes) {
+  return bytes
+    .map(function (byte) {
+      var value = byte;
+      if (value < 0) {
+        value += 256;
+      }
+      var hex = value.toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    })
+    .join('');
+}
+
+function buildDeviceSessionKey(email, deviceId) {
+  var digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, email + '::' + deviceId);
+  return 'sess_' + bytesToHex(digest).substring(0, 32);
+}
+
+function loadUserStore() {
+  var props = PropertiesService.getScriptProperties();
+  var raw = props.getProperty(AUTH_PROPERTY_KEY);
+  if (!raw) {
+    return {
+      users: {},
+      sessionOwners: {}
+    };
+  }
+  try {
+    var parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return {
+        users: {},
+        sessionOwners: {}
+      };
+    }
+    parsed.users = parsed.users || {};
+    parsed.sessionOwners = parsed.sessionOwners || {};
+    return parsed;
+  } catch (err) {
+    return {
+      users: {},
+      sessionOwners: {}
+    };
+  }
+}
+
+function saveUserStore(store) {
+  if (!store) {
+    return;
+  }
+  store.users = store.users || {};
+  store.sessionOwners = store.sessionOwners || {};
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty(AUTH_PROPERTY_KEY, JSON.stringify(store));
+}
+
+function lookupSessionOwner(store, sessionId) {
+  if (!store) {
+    return null;
+  }
+  var ownerMap = store.sessionOwners || {};
+  if (ownerMap[sessionId]) {
+    return ownerMap[sessionId];
+  }
+  var users = store.users || {};
+  for (var key in users) {
+    if (!Object.prototype.hasOwnProperty.call(users, key)) {
+      continue;
+    }
+    var user = users[key];
+    if (!user.devices) {
+      continue;
+    }
+    var devices = user.devices;
+    for (var deviceId in devices) {
+      if (!Object.prototype.hasOwnProperty.call(devices, deviceId)) {
+        continue;
+      }
+      if (devices[deviceId] && devices[deviceId].sessionKey === sessionId) {
+        return key;
+      }
+    }
+  }
+  return null;
+}
+
+function findDeviceBySession(user, sessionId) {
+  if (!user || !user.devices) {
+    return null;
+  }
+  for (var deviceId in user.devices) {
+    if (!Object.prototype.hasOwnProperty.call(user.devices, deviceId)) {
+      continue;
+    }
+    var device = user.devices[deviceId];
+    if (device && device.sessionKey === sessionId) {
+      return device;
+    }
+  }
+  return null;
+}
+
+function isValidEmail(email) {
+  if (!email) {
+    return false;
+  }
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function doGet(e) {
   var resource = e && e.parameter ? e.parameter.resource : null;
   if (resource === 'manifest') {
@@ -69,29 +437,28 @@ function doGet(e) {
 }
 
 function startFast(sessionId, customTimestamp) {
-  if (arguments.length === 1) {
-    customTimestamp = sessionId;
-    sessionId = null;
+  if (arguments.length === 1 && (typeof sessionId === 'number' || sessionId instanceof Date || typeof sessionId === 'string')) {
+    throw new Error(AUTH_REQUIRED_ERROR);
   }
   return applyFastStart(sessionId, customTimestamp);
 }
 
 function setFastStart(sessionId, customTimestamp) {
-  if (arguments.length === 1) {
-    customTimestamp = sessionId;
-    sessionId = null;
+  if (arguments.length === 1 && (typeof sessionId === 'number' || sessionId instanceof Date || typeof sessionId === 'string')) {
+    throw new Error(AUTH_REQUIRED_ERROR);
   }
   return applyFastStart(sessionId, customTimestamp);
 }
 
 function applyFastStart(sessionId, customTimestamp) {
+  var context = resolveSessionContext(sessionId);
   var props = PropertiesService.getUserProperties();
   var now = new Date().getTime();
   var startTime = resolveStartTimestamp(customTimestamp, now);
-  var resolvedSession = resolveSessionId(sessionId);
+  var resolvedSession = context.sessionId;
   persistFastStart(props, resolvedSession, startTime);
   ensureReminderTrigger();
-  return getStatus(resolvedSession);
+  return getStatus(context);
 }
 
 function resolveStartTimestamp(customTimestamp, now) {
@@ -121,6 +488,9 @@ function resolveStartTimestamp(customTimestamp, now) {
 }
 
 function resolveSessionId(sessionId) {
+  if (sessionId && typeof sessionId === 'object') {
+    return resolveAuthorizedSession(sessionId).sessionId;
+  }
   if (sessionId === undefined || sessionId === null || sessionId === '') {
     return 'default';
   }
@@ -132,6 +502,18 @@ function resolveSessionId(sessionId) {
     return 'default';
   }
   return sanitized;
+}
+
+function resolveSessionContext(sessionInput) {
+  if (sessionInput && typeof sessionInput === 'object') {
+    if (sessionInput.__context === true && sessionInput.sessionId) {
+      return sessionInput;
+    }
+    var context = resolveAuthorizedSession(sessionInput);
+    context.__context = true;
+    return context;
+  }
+  throw new Error(AUTH_REQUIRED_ERROR);
 }
 
 function buildSessionKey(sessionId, key) {
@@ -282,52 +664,53 @@ function persistFastStart(props, sessionId, startTime) {
 
 function stopFast(sessionId) {
   if (arguments.length === 0) {
-    sessionId = null;
+    throw new Error(AUTH_REQUIRED_ERROR);
   }
+  var context = resolveSessionContext(sessionId);
   var props = PropertiesService.getUserProperties();
-  var resolvedSession = resolveSessionId(sessionId);
+  var resolvedSession = context.sessionId;
   deleteSessionProperty(props, resolvedSession, PROPERTY_KEYS.fastStart);
   deleteSessionProperty(props, resolvedSession, PROPERTY_KEYS.lastDrink);
   deleteSessionProperty(props, resolvedSession, PROPERTY_KEYS.lastReminder);
   markSessionInactive(props, resolvedSession);
   ensureReminderTrigger();
-  return getStatus(resolvedSession);
+  return getStatus(context);
 }
 
 function recordHydration(sessionId) {
   if (arguments.length === 0) {
-    sessionId = null;
+    throw new Error(AUTH_REQUIRED_ERROR);
   }
+  var context = resolveSessionContext(sessionId);
   var props = PropertiesService.getUserProperties();
   var now = new Date().getTime();
-  var resolvedSession = resolveSessionId(sessionId);
+  var resolvedSession = context.sessionId;
   setSessionProperty(props, resolvedSession, PROPERTY_KEYS.lastDrink, now.toString());
   deleteSessionProperty(props, resolvedSession, PROPERTY_KEYS.lastReminder);
-  return getStatus(resolvedSession);
+  return getStatus(context);
 }
 
 function setReminderInterval(sessionId, intervalMinutes) {
   if (arguments.length === 1) {
     intervalMinutes = sessionId;
-    sessionId = null;
+    throw new Error(AUTH_REQUIRED_ERROR);
   }
   var interval = parseInt(intervalMinutes, 10);
   if (isNaN(interval) || interval < MIN_REMINDER_MINUTES) {
     interval = DEFAULT_REMINDER_MINUTES;
   }
+  var context = resolveSessionContext(sessionId);
   var props = PropertiesService.getUserProperties();
-  var resolvedSession = resolveSessionId(sessionId);
+  var resolvedSession = context.sessionId;
   setSessionProperty(props, resolvedSession, PROPERTY_KEYS.reminderInterval, interval.toString());
   ensureReminderTrigger();
-  return getStatus(resolvedSession);
+  return getStatus(context);
 }
 
 function getStatus(sessionId) {
-  if (arguments.length === 0) {
-    sessionId = null;
-  }
+  var context = resolveSessionContext(sessionId);
   var props = PropertiesService.getUserProperties();
-  var resolvedSession = resolveSessionId(sessionId);
+  var resolvedSession = context.sessionId;
   var now = new Date().getTime();
   var startValue = getSessionProperty(props, resolvedSession, PROPERTY_KEYS.fastStart);
   var startTimestamp = startValue ? parseInt(startValue, 10) : null;
@@ -350,7 +733,8 @@ function getStatus(sessionId) {
     progressPercent: progressPercent,
     timeline: timeline,
     motivationalMessage: getMotivationalMessage(now, elapsedHours, phaseDetails),
-    hydration: hydration
+    hydration: hydration,
+    accountEmail: context.email
   };
   return response;
 }
@@ -633,17 +1017,26 @@ function sendReminder() {
   if (!sessionIds.length) {
     return 'No sessions registered.';
   }
+  var store = loadUserStore();
   var now = new Date();
   var nowMs = now.getTime();
   var hour = now.getHours();
   var wakingHours = hour >= 5 && hour < 21;
-  var email = '';
-  if (typeof Session !== 'undefined' && Session.getActiveUser) {
-    email = Session.getActiveUser().getEmail();
-  }
   var sentCount = 0;
   for (var i = 0; i < sessionIds.length; i++) {
     var sessionId = sessionIds[i];
+    var normalizedEmail = lookupSessionOwner(store, sessionId);
+    if (!normalizedEmail) {
+      continue;
+    }
+    var user = store.users[normalizedEmail];
+    if (!user) {
+      continue;
+    }
+    var deviceInfo = findDeviceBySession(user, sessionId);
+    if (!deviceInfo) {
+      continue;
+    }
     var startValue = getSessionProperty(props, sessionId, PROPERTY_KEYS.fastStart);
     if (!startValue) {
       continue;
@@ -664,15 +1057,20 @@ function sendReminder() {
     if (!wakingHours) {
       continue;
     }
-    if (email) {
+    var targetEmail = user.email || normalizedEmail;
+    if (targetEmail) {
       var fastingMinutes = Math.floor((nowMs - parseInt(startValue, 10)) / 60000);
       var emailBody = 'Time to drink water with electrolytes! You\'ve been fasting for ' +
         formatDuration(fastingMinutes) + '. Keep going—you are doing great.';
-      MailApp.sendEmail({
-        to: email,
-        subject: 'HydraFast Hydration Reminder',
-        body: emailBody
-      });
+      try {
+        MailApp.sendEmail({
+          to: targetEmail,
+          subject: 'HydraFast Hydration Reminder',
+          body: emailBody
+        });
+      } catch (err) {
+        // Ignore email failures to prevent trigger errors.
+      }
     }
     setSessionProperty(props, sessionId, PROPERTY_KEYS.lastReminder, nowMs.toString());
     sentCount++;
