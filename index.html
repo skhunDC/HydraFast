@@ -146,6 +146,14 @@
         font-size: 0.95rem;
       }
 
+      .stat-item {
+        padding: clamp(14px, 5vw, 18px);
+      }
+
+      .stat-value {
+        font-size: clamp(1.3rem, 5.5vw, 1.6rem);
+      }
+
       .circle-tools {
         flex-direction: column;
         align-items: stretch;
@@ -173,6 +181,50 @@
 
     .card.center {
       text-align: center;
+    }
+
+    .stats-card {
+      background: linear-gradient(135deg, rgba(0, 180, 216, 0.1), rgba(45, 212, 191, 0.16));
+      color: var(--primary-dark);
+    }
+
+    .stats-grid {
+      margin-top: 16px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .stat-item {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: inset 0 0 0 1px rgba(0, 119, 182, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-label {
+      margin: 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      margin: 0;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .stat-note {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
     }
 
     .progress-ring {
@@ -1230,6 +1282,27 @@
         </div>
       </div>
       <div class="phase-description" id="phaseDescription">Tap “Start Fast” to begin tracking.</div>
+    </section>
+
+    <section class="card stats-card" id="insightsCard">
+      <h2>Quick Stats</h2>
+      <div class="stats-grid" role="list">
+        <div class="stat-item" role="listitem">
+          <p class="stat-label">Current fast</p>
+          <p class="stat-value" id="statCurrentFast">--</p>
+          <p class="stat-note" id="statCurrentPhase">Press start when you're ready.</p>
+        </div>
+        <div class="stat-item" role="listitem">
+          <p class="stat-label">Last fast</p>
+          <p class="stat-value" id="statLastFast">—</p>
+          <p class="stat-note" id="statLastNote">No fast recorded yet.</p>
+        </div>
+        <div class="stat-item" role="listitem">
+          <p class="stat-label">Hydration rhythm</p>
+          <p class="stat-value" id="statHydrationCadence">--</p>
+          <p class="stat-note" id="statHydrationNote">Set a reminder interval.</p>
+        </div>
+      </div>
     </section>
 
     <section class="card mission-card" id="milestoneCard">
@@ -2592,6 +2665,7 @@
       if (endedFast) {
         rememberCompletedFast(previousStatus);
       }
+      updateStats(status);
       updateRefeed(status, endedFast, completedHours);
       persistLocalProfileFromStatus(status);
       updateMilestones(status);
@@ -2631,6 +2705,67 @@
       } else {
         nextReminderEl.textContent = 'In ' + formatMinutes(hydration.nextReminderMinutes);
       }
+    }
+
+    function updateStats(status) {
+      const currentValueEl = document.getElementById('statCurrentFast');
+      const currentNoteEl = document.getElementById('statCurrentPhase');
+      const lastValueEl = document.getElementById('statLastFast');
+      const lastNoteEl = document.getElementById('statLastNote');
+      const hydrationValueEl = document.getElementById('statHydrationCadence');
+      const hydrationNoteEl = document.getElementById('statHydrationNote');
+
+      if (!currentValueEl || !currentNoteEl || !lastValueEl || !lastNoteEl || !hydrationValueEl || !hydrationNoteEl) {
+        return;
+      }
+
+      if (!status) {
+        currentValueEl.textContent = '--';
+        currentNoteEl.textContent = 'Stats will appear once you start.';
+        lastValueEl.textContent = '—';
+        lastNoteEl.textContent = 'No fast recorded yet.';
+        hydrationValueEl.textContent = '--';
+        hydrationNoteEl.textContent = 'Set a reminder interval.';
+        return;
+      }
+
+      const isFasting = status.status === 'fasting';
+      if (isFasting) {
+        currentValueEl.textContent = status.elapsedLabel || 'Just started';
+        currentNoteEl.textContent = status.phaseDetails ? status.phaseDetails.title : 'Settling in';
+      } else {
+        currentValueEl.textContent = 'Not fasting';
+        currentNoteEl.textContent = 'Press start when you\'re ready.';
+      }
+
+      let lastFastValue = '—';
+      let lastFastNote = 'No fast recorded yet.';
+      if (supportsLocalStorage()) {
+        const profile = loadLocalProfile();
+        if (profile && profile.lastCompletedFastMinutes) {
+          lastFastValue = formatDurationLabel(profile.lastCompletedFastMinutes);
+          if (profile.lastCompletedFastEndedAt) {
+            lastFastNote = formatRelativeTime(profile.lastCompletedFastEndedAt);
+          } else {
+            lastFastNote = 'Completed recently.';
+          }
+        }
+      }
+      lastValueEl.textContent = lastFastValue;
+      lastNoteEl.textContent = lastFastNote;
+
+      let hydrationCadence = '--';
+      let hydrationNote = 'Set a reminder interval.';
+      if (status.hydration) {
+        hydrationCadence = formatIntervalLabel(status.hydration.intervalMinutes);
+        if (status.hydration.lastDrinkMinutesAgo !== null && status.hydration.lastDrinkMinutesAgo !== undefined) {
+          hydrationNote = formatMinutesAgo(status.hydration.lastDrinkMinutesAgo);
+        } else {
+          hydrationNote = 'Log a drink to begin tracking.';
+        }
+      }
+      hydrationValueEl.textContent = hydrationCadence;
+      hydrationNoteEl.textContent = hydrationNote.charAt(0).toUpperCase() + hydrationNote.slice(1);
     }
 
     function updateMotivation(message) {
