@@ -227,6 +227,194 @@
       color: var(--muted);
     }
 
+    .history-card {
+      background: linear-gradient(150deg, rgba(72, 202, 228, 0.12), rgba(0, 119, 182, 0.08));
+      overflow: hidden;
+    }
+
+    .history-card header {
+      margin-bottom: 16px;
+    }
+
+    .history-card h2 {
+      margin-bottom: 4px;
+    }
+
+    .history-intro {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .history-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 20px 0 16px;
+    }
+
+    .history-pill {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: inset 0 0 0 1px rgba(0, 119, 182, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .history-pill .label {
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      font-size: 0.78rem;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .history-pill .value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--primary-dark);
+    }
+
+    .history-pill .hint {
+      font-size: 0.85rem;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .history-momentum {
+      margin: 0 0 16px;
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .history-momentum__label {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(255, 123, 84, 0.15);
+    }
+
+    .history-momentum__text {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .history-chart {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      min-height: 140px;
+      margin-bottom: 16px;
+    }
+
+    .history-bar {
+      flex: 1;
+      background: linear-gradient(180deg, rgba(0, 180, 216, 0.85), rgba(72, 202, 228, 0.65));
+      border-radius: 14px 14px 10px 10px;
+      position: relative;
+      height: var(--bar-height, 0%);
+      min-height: 12px;
+      transition: height 0.4s ease;
+    }
+
+    .history-bar::after {
+      content: attr(data-duration);
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      white-space: nowrap;
+    }
+
+    .history-bar__label {
+      position: absolute;
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-entry {
+      background: rgba(255, 255, 255, 0.88);
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: inset 0 0 0 1px rgba(0, 119, 182, 0.08);
+      display: grid;
+      gap: 6px;
+    }
+
+    .history-entry__header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .history-entry__title {
+      font-weight: 700;
+      margin: 0;
+      color: var(--primary-dark);
+    }
+
+    .history-entry__duration {
+      margin: 0;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .history-entry__note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .history-entry__tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--primary-dark);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 600;
+      box-shadow: inset 0 0 0 1px rgba(0, 180, 216, 0.15);
+    }
+
+    .history-empty {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+
     .progress-ring {
       --progress: 0;
       width: 220px;
@@ -1303,6 +1491,34 @@
           <p class="stat-note" id="statHydrationNote">Set a reminder interval.</p>
         </div>
       </div>
+    </section>
+
+    <section class="card history-card" id="historyCard">
+      <header>
+        <h2>Historical Fasting Story</h2>
+        <p class="history-intro">Spot trends, celebrate streaks, and reflect on how your fasts are evolving.</p>
+      </header>
+      <div class="history-summary">
+        <div class="history-pill">
+          <p class="label">Active streak</p>
+          <p class="value" id="historyStreak">0 days</p>
+          <p class="hint">Log a fast to begin your streak.</p>
+        </div>
+        <div class="history-pill">
+          <p class="label">Average length</p>
+          <p class="value" id="historyAverage">--</p>
+          <p class="hint">Based on your logged fasts.</p>
+        </div>
+        <div class="history-pill">
+          <p class="label">Personal best</p>
+          <p class="value" id="historyRecord">--</p>
+          <p class="hint">Aim for sustainable progress.</p>
+        </div>
+      </div>
+      <p class="history-momentum"><span class="history-momentum__label">Momentum</span><span class="history-momentum__text" id="historyMomentum">Your fasting log will appear here once you complete a fast.</span></p>
+      <div class="history-chart" id="historyChart" role="list" aria-label="Recent fast durations"></div>
+      <p class="history-empty" id="historyEmptyState">Complete and stop a fast to unlock your historical insights.</p>
+      <div class="history-list" id="historyList" role="list" aria-live="polite"></div>
     </section>
 
     <section class="card mission-card" id="milestoneCard">
@@ -2666,6 +2882,7 @@
         rememberCompletedFast(previousStatus);
       }
       updateStats(status);
+      updateHistory(status);
       updateRefeed(status, endedFast, completedHours);
       persistLocalProfileFromStatus(status);
       updateMilestones(status);
@@ -2766,6 +2983,201 @@
       }
       hydrationValueEl.textContent = hydrationCadence;
       hydrationNoteEl.textContent = hydrationNote.charAt(0).toUpperCase() + hydrationNote.slice(1);
+    }
+
+    function updateHistory(status) {
+      const streakEl = document.getElementById('historyStreak');
+      const averageEl = document.getElementById('historyAverage');
+      const recordEl = document.getElementById('historyRecord');
+      const momentumEl = document.getElementById('historyMomentum');
+      const chartEl = document.getElementById('historyChart');
+      const emptyEl = document.getElementById('historyEmptyState');
+      const listEl = document.getElementById('historyList');
+
+      if (!streakEl || !averageEl || !recordEl || !momentumEl || !chartEl || !emptyEl || !listEl) {
+        return;
+      }
+
+      const profile = loadLocalProfile();
+      const history = profile && Array.isArray(profile.fastHistory) ? profile.fastHistory.slice() : [];
+
+      const hasHistory = history.length > 0;
+      emptyEl.style.display = hasHistory ? 'none' : 'block';
+      chartEl.style.display = hasHistory ? 'flex' : 'none';
+      listEl.style.display = hasHistory ? 'grid' : 'none';
+
+      if (!hasHistory) {
+        streakEl.textContent = '0 days';
+        averageEl.textContent = '--';
+        recordEl.textContent = '--';
+        momentumEl.textContent = 'Your fasting log will appear here once you complete a fast.';
+        chartEl.innerHTML = '';
+        listEl.innerHTML = '';
+        return;
+      }
+
+      const streak = calculateFastStreak(history);
+      streakEl.textContent = streak > 0 ? streak + (streak === 1 ? ' day' : ' days') + ' in a row' : 'Streak warming up';
+
+      const averageMinutes = Math.round(history.reduce(function (total, entry) {
+        return total + (entry.minutes || 0);
+      }, 0) / history.length);
+      averageEl.textContent = formatDurationLabel(averageMinutes);
+
+      const recordMinutes = history.reduce(function (max, entry) {
+        return Math.max(max, entry.minutes || 0);
+      }, 0);
+      recordEl.textContent = recordMinutes ? formatDurationLabel(recordMinutes) : '--';
+
+      const latest = history[0];
+      if (latest && latest.endedAt) {
+        const durationLabel = formatDurationLabel(latest.minutes || 0);
+        momentumEl.textContent = 'Last fast lasted ' + durationLabel + ' and wrapped ' + formatRelativeTime(latest.endedAt) + '.';
+      } else {
+        momentumEl.textContent = 'Keep logging your fasts to see how your rhythm is evolving.';
+      }
+
+      renderHistoryChart(chartEl, history);
+      renderHistoryList(listEl, history, status);
+    }
+
+    function renderHistoryChart(container, history) {
+      container.innerHTML = '';
+      const recent = history.slice(0, 6);
+      if (!recent.length) {
+        return;
+      }
+      const maxMinutes = recent.reduce(function (max, entry) {
+        return Math.max(max, entry.minutes || 0);
+      }, 0) || 1;
+
+      recent.forEach(function (entry, index) {
+        const bar = document.createElement('div');
+        bar.className = 'history-bar';
+        const percentage = Math.max(6, Math.round(((entry.minutes || 0) / maxMinutes) * 100));
+        bar.style.setProperty('--bar-height', percentage + '%');
+        bar.dataset.duration = formatDurationLabel(entry.minutes || 0);
+        bar.setAttribute('role', 'listitem');
+        bar.setAttribute('aria-label', formatHistoryLabel(entry, index) + ' · ' + formatDurationLabel(entry.minutes || 0));
+        const label = document.createElement('span');
+        label.className = 'history-bar__label';
+        label.textContent = formatHistoryLabel(entry, index);
+        bar.appendChild(label);
+        container.appendChild(bar);
+      });
+    }
+
+    function renderHistoryList(container, history, status) {
+      container.innerHTML = '';
+      const recent = history.slice(0, 5);
+      recent.forEach(function (entry) {
+        const item = document.createElement('div');
+        item.className = 'history-entry';
+        item.setAttribute('role', 'listitem');
+
+        const header = document.createElement('div');
+        header.className = 'history-entry__header';
+
+        const title = document.createElement('p');
+        title.className = 'history-entry__title';
+        title.textContent = formatHistoryWindow(entry);
+
+        const duration = document.createElement('p');
+        duration.className = 'history-entry__duration';
+        duration.textContent = formatDurationLabel(entry.minutes || 0);
+
+        header.appendChild(title);
+        header.appendChild(duration);
+        item.appendChild(header);
+
+        if (entry.phaseReached) {
+          const tag = document.createElement('span');
+          tag.className = 'history-entry__tag';
+          tag.textContent = 'Reached ' + entry.phaseReached;
+          item.appendChild(tag);
+        }
+
+        const note = document.createElement('p');
+        note.className = 'history-entry__note';
+        const endedLabel = entry.endedAt ? 'Ended ' + formatRelativeTime(entry.endedAt) + '.' : 'Logged previously.';
+        note.textContent = endedLabel + ' ' + buildHistoryReflection(entry, status);
+        item.appendChild(note);
+
+        container.appendChild(item);
+      });
+    }
+
+    function buildHistoryReflection(entry, status) {
+      const ongoing = status && status.status === 'fasting';
+      if (!ongoing) {
+        return 'Prep your next start time when you feel ready.';
+      }
+      const minutes = status.elapsedMinutes || 0;
+      const difference = Math.max(0, minutes - (entry.minutes || 0));
+      if (difference > 30) {
+        return 'You are on track to go ' + formatDurationLabel(difference) + ' longer right now.';
+      }
+      return 'Use this fast as inspiration for your current rhythm.';
+    }
+
+    function calculateFastStreak(history) {
+      if (!history.length) {
+        return 0;
+      }
+      const now = Date.now();
+      const maxGap = 48 * 60 * 60000;
+      let streak = 0;
+      let previousEnd = null;
+      for (let i = 0; i < history.length; i += 1) {
+        const entry = history[i];
+        const endedAt = entry.endedAt || 0;
+        if (!endedAt) {
+          continue;
+        }
+        if (streak === 0) {
+          if (now - endedAt > maxGap) {
+            break;
+          }
+          streak = 1;
+          previousEnd = endedAt;
+        } else if (previousEnd - endedAt <= maxGap) {
+          streak += 1;
+          previousEnd = endedAt;
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function formatHistoryLabel(entry, index) {
+      if (!entry || !entry.endedAt) {
+        return 'Fast ' + (index + 1);
+      }
+      const date = new Date(entry.endedAt);
+      return date.toLocaleDateString([], { weekday: 'short' });
+    }
+
+    function formatHistoryWindow(entry) {
+      if (!entry) {
+        return 'Fast';
+      }
+      const start = entry.startTimestamp || (entry.endedAt ? entry.endedAt - (entry.minutes || 0) * 60000 : null);
+      const end = entry.endedAt || null;
+      if (!start || !end) {
+        return 'Fast duration';
+      }
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return 'Fast duration';
+      }
+      const sameDay = startDate.toDateString() === endDate.toDateString();
+      const startLabel = startDate.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const endLabel = sameDay
+        ? endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        : endDate.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      return sameDay ? startLabel + ' → ' + endLabel : startLabel + ' → ' + endLabel;
     }
 
     function updateMotivation(message) {
@@ -2895,8 +3307,29 @@
         return;
       }
       mutateLocalProfile(function (profile) {
-        profile.lastCompletedFastMinutes = previous.elapsedMinutes;
-        profile.lastCompletedFastEndedAt = Date.now();
+        const endedAt = Date.now();
+        const minutes = Math.max(0, previous.elapsedMinutes || 0);
+        const startTimestamp = previous.startTimestamp || (endedAt - minutes * 60000);
+        const phaseReached = previous.phaseDetails && previous.phaseDetails.title ? previous.phaseDetails.title : null;
+
+        profile.lastCompletedFastMinutes = minutes;
+        profile.lastCompletedFastEndedAt = endedAt;
+
+        if (!Array.isArray(profile.fastHistory)) {
+          profile.fastHistory = [];
+        }
+
+        const entry = {
+          minutes: minutes,
+          endedAt: endedAt,
+          startTimestamp: startTimestamp,
+          phaseReached: phaseReached
+        };
+
+        profile.fastHistory.unshift(entry);
+        if (profile.fastHistory.length > 20) {
+          profile.fastHistory = profile.fastHistory.slice(0, 20);
+        }
       });
     }
 
@@ -4421,6 +4854,9 @@
         if (!Array.isArray(existing.unlockedMilestones)) {
           existing.unlockedMilestones = [];
         }
+        if (!Array.isArray(existing.fastHistory)) {
+          existing.fastHistory = [];
+        }
         if (typeof existing.lastCompletedFastMinutes !== 'number') {
           existing.lastCompletedFastMinutes = 0;
         }
@@ -4440,7 +4876,8 @@
         reminderInterval: DEFAULT_REMINDER_MINUTES,
         unlockedMilestones: [],
         lastCompletedFastMinutes: 0,
-        lastCompletedFastEndedAt: null
+        lastCompletedFastEndedAt: null,
+        fastHistory: []
       };
     }
 
@@ -4449,6 +4886,9 @@
       mutator(profile);
       if (!Array.isArray(profile.unlockedMilestones)) {
         profile.unlockedMilestones = [];
+      }
+      if (!Array.isArray(profile.fastHistory)) {
+        profile.fastHistory = [];
       }
       profile.hydration = profile.hydration || {};
       if (typeof profile.lastCompletedFastMinutes !== 'number') {
